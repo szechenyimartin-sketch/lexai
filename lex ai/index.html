@@ -1,0 +1,1009 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LexAI – AI-alapú Szerződéselemzés</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=Instrument+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --blue: #1B4FD8;
+  --blue-dark: #1340B8;
+  --blue-light: #EEF3FF;
+  --blue-mid: #3B6BF0;
+  --navy: #0A1628;
+  --white: #FFFFFF;
+  --gray-50: #F8FAFC;
+  --gray-100: #F1F5F9;
+  --gray-200: #E2E8F0;
+  --gray-400: #94A3B8;
+  --gray-600: #475569;
+  --gray-800: #1E293B;
+  --green: #10B981;
+  --red: #EF4444;
+  --orange: #F59E0B;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: 'Instrument Sans', sans-serif;
+  color: var(--gray-800);
+  background: var(--white);
+  overflow-x: hidden;
+}
+
+/* NAV */
+nav {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 100;
+  padding: 0 2rem;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: rgba(255,255,255,0.92);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--gray-200);
+  transition: all 0.3s;
+}
+
+.nav-logo {
+  font-family: 'Syne', sans-serif;
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--blue);
+  letter-spacing: -0.02em;
+}
+
+.nav-logo span { color: var(--navy); }
+
+.nav-links { display: flex; gap: 2rem; align-items: center; }
+.nav-links a { font-size: 14px; color: var(--gray-600); text-decoration: none; font-weight: 500; transition: color 0.2s; }
+.nav-links a:hover { color: var(--blue); }
+
+.nav-cta {
+  padding: 8px 20px;
+  background: var(--blue);
+  color: white;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  text-decoration: none;
+  transition: all 0.2s;
+}
+.nav-cta:hover { background: var(--blue-dark); transform: translateY(-1px); }
+
+/* HERO */
+.hero {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  padding: 120px 2rem 80px;
+  background: linear-gradient(135deg, #F8FAFF 0%, #EEF3FF 50%, #F0F4FF 100%);
+  position: relative;
+  overflow: hidden;
+}
+
+.hero::before {
+  content: '';
+  position: absolute;
+  top: -200px; right: -200px;
+  width: 600px; height: 600px;
+  background: radial-gradient(circle, rgba(27,79,216,0.08) 0%, transparent 70%);
+  border-radius: 50%;
+}
+
+.hero::after {
+  content: '';
+  position: absolute;
+  bottom: -100px; left: -100px;
+  width: 400px; height: 400px;
+  background: radial-gradient(circle, rgba(59,107,240,0.06) 0%, transparent 70%);
+  border-radius: 50%;
+}
+
+.hero-inner {
+  max-width: 1100px;
+  margin: 0 auto;
+  width: 100%;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4rem;
+  align-items: center;
+  position: relative;
+  z-index: 1;
+}
+
+.hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: white;
+  border: 1px solid var(--blue-light);
+  border-radius: 20px;
+  padding: 6px 14px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--blue);
+  margin-bottom: 1.5rem;
+  box-shadow: 0 2px 8px rgba(27,79,216,0.08);
+}
+
+.hero-badge-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); }
+
+.hero h1 {
+  font-family: 'Syne', sans-serif;
+  font-size: clamp(36px, 5vw, 56px);
+  font-weight: 800;
+  line-height: 1.1;
+  letter-spacing: -0.03em;
+  color: var(--navy);
+  margin-bottom: 1.25rem;
+}
+
+.hero h1 .accent { color: var(--blue); }
+
+.hero p {
+  font-size: 18px;
+  color: var(--gray-600);
+  line-height: 1.7;
+  margin-bottom: 2rem;
+  font-weight: 300;
+}
+
+.hero-actions { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+
+.btn-hero {
+  padding: 14px 28px;
+  background: var(--blue);
+  color: white;
+  border-radius: 10px;
+  font-size: 16px;
+  font-weight: 500;
+  text-decoration: none;
+  transition: all 0.2s;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 4px 20px rgba(27,79,216,0.25);
+}
+
+.btn-hero:hover { background: var(--blue-dark); transform: translateY(-2px); box-shadow: 0 8px 30px rgba(27,79,216,0.3); }
+
+.btn-hero-ghost {
+  padding: 14px 24px;
+  color: var(--gray-600);
+  font-size: 15px;
+  font-weight: 500;
+  text-decoration: none;
+  transition: all 0.2s;
+}
+.btn-hero-ghost:hover { color: var(--blue); }
+
+.hero-stats {
+  display: flex;
+  gap: 2rem;
+  margin-top: 2.5rem;
+  padding-top: 2rem;
+  border-top: 1px solid var(--gray-200);
+}
+
+.hero-stat-num {
+  font-family: 'Syne', sans-serif;
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--navy);
+}
+
+.hero-stat-label { font-size: 13px; color: var(--gray-400); margin-top: 2px; }
+
+/* MOCK UI */
+.hero-visual {
+  position: relative;
+}
+
+.mock-card {
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 20px 60px rgba(10,22,40,0.12), 0 4px 20px rgba(10,22,40,0.06);
+  overflow: hidden;
+  animation: float 4s ease-in-out infinite;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+
+.mock-header {
+  background: var(--navy);
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.mock-dot { width: 10px; height: 10px; border-radius: 50%; }
+
+.mock-title {
+  font-family: 'Syne', sans-serif;
+  font-size: 13px;
+  color: rgba(255,255,255,0.7);
+  margin-left: 8px;
+  font-weight: 500;
+}
+
+.mock-body { padding: 20px; }
+
+.mock-score-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px;
+  background: #FFF5F5;
+  border: 1px solid #FECACA;
+  border-radius: 12px;
+  margin-bottom: 16px;
+}
+
+.mock-score-circle {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  border: 3px solid var(--red);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.mock-score-num { font-family: 'Syne', sans-serif; font-size: 20px; font-weight: 700; color: var(--red); line-height: 1; }
+.mock-score-sub { font-size: 9px; color: var(--red); }
+.mock-score-label { font-size: 15px; font-weight: 600; color: #991B1B; }
+.mock-score-desc { font-size: 12px; color: #B91C1C; margin-top: 2px; }
+
+.mock-risk {
+  display: flex;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  margin-bottom: 8px;
+  align-items: flex-start;
+}
+
+.mock-risk.high { background: #FFF5F5; }
+.mock-risk.med { background: #FFFBEB; }
+.mock-risk.low { background: #F0FDF4; }
+
+.mock-dot-sm { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; margin-top: 4px; }
+.high .mock-dot-sm { background: var(--red); }
+.med .mock-dot-sm { background: var(--orange); }
+.low .mock-dot-sm { background: var(--green); }
+
+.mock-risk-title { font-size: 12px; font-weight: 600; color: var(--gray-800); }
+.mock-risk-desc { font-size: 11px; color: var(--gray-600); margin-top: 1px; }
+
+.mock-badge {
+  font-size: 9px;
+  padding: 2px 6px;
+  border-radius: 10px;
+  font-weight: 600;
+  margin-left: auto;
+  flex-shrink: 0;
+}
+.high .mock-badge { background: var(--red); color: white; }
+.med .mock-badge { background: var(--orange); color: white; }
+.low .mock-badge { background: var(--green); color: white; }
+
+.mock-fix {
+  background: #F0FDF4;
+  border: 1px solid #BBF7D0;
+  border-radius: 8px;
+  padding: 10px 12px;
+  margin-top: 12px;
+}
+.mock-fix-label { font-size: 10px; font-weight: 600; color: #166534; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px; }
+.mock-fix-text { font-size: 11px; color: #166534; line-height: 1.4; }
+
+/* SECTIONS */
+section { padding: 100px 2rem; }
+
+.section-inner { max-width: 1100px; margin: 0 auto; }
+
+.section-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--blue);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-bottom: 1rem;
+}
+
+.section-title {
+  font-family: 'Syne', sans-serif;
+  font-size: clamp(28px, 4vw, 42px);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--navy);
+  line-height: 1.2;
+  margin-bottom: 1rem;
+}
+
+.section-sub {
+  font-size: 17px;
+  color: var(--gray-600);
+  line-height: 1.7;
+  font-weight: 300;
+  max-width: 560px;
+}
+
+/* HOW IT WORKS */
+.how-section { background: var(--gray-50); }
+
+.steps-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2rem;
+  margin-top: 3.5rem;
+}
+
+.step-card {
+  background: white;
+  border: 1px solid var(--gray-200);
+  border-radius: 16px;
+  padding: 2rem;
+  position: relative;
+  transition: all 0.3s;
+}
+
+.step-card:hover { border-color: var(--blue); box-shadow: 0 8px 30px rgba(27,79,216,0.1); transform: translateY(-4px); }
+
+.step-num {
+  font-family: 'Syne', sans-serif;
+  font-size: 48px;
+  font-weight: 800;
+  color: var(--blue-light);
+  line-height: 1;
+  margin-bottom: 1rem;
+}
+
+.step-icon {
+  width: 48px;
+  height: 48px;
+  background: var(--blue-light);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  margin-bottom: 1.25rem;
+}
+
+.step-title {
+  font-family: 'Syne', sans-serif;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--navy);
+  margin-bottom: 0.75rem;
+}
+
+.step-desc { font-size: 15px; color: var(--gray-600); line-height: 1.6; font-weight: 300; }
+
+/* FEATURES */
+.features-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.5rem;
+  margin-top: 3.5rem;
+}
+
+.feature-card {
+  border: 1px solid var(--gray-200);
+  border-radius: 16px;
+  padding: 1.75rem;
+  transition: all 0.3s;
+  display: flex;
+  gap: 1rem;
+  align-items: flex-start;
+}
+
+.feature-card:hover { border-color: var(--blue); background: var(--blue-light); }
+
+.feature-icon {
+  width: 44px;
+  height: 44px;
+  background: var(--blue-light);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  flex-shrink: 0;
+}
+
+.feature-title { font-size: 16px; font-weight: 600; color: var(--navy); margin-bottom: 6px; }
+.feature-desc { font-size: 14px; color: var(--gray-600); line-height: 1.6; font-weight: 300; }
+
+/* PRICING */
+.pricing-section { background: var(--navy); }
+.pricing-section .section-title { color: white; }
+.pricing-section .section-sub { color: rgba(255,255,255,0.6); }
+.pricing-section .section-label { color: #60A5FA; }
+
+.pricing-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.5rem;
+  margin-top: 3.5rem;
+}
+
+.price-card {
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 16px;
+  padding: 2rem;
+  transition: all 0.3s;
+  position: relative;
+}
+
+.price-card:hover { border-color: rgba(255,255,255,0.25); background: rgba(255,255,255,0.08); }
+
+.price-card.featured {
+  background: var(--blue);
+  border-color: var(--blue-mid);
+  transform: scale(1.03);
+}
+
+.price-popular {
+  position: absolute;
+  top: -12px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--green);
+  color: white;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 4px 14px;
+  border-radius: 20px;
+  white-space: nowrap;
+}
+
+.price-name { font-size: 13px; font-weight: 600; color: rgba(255,255,255,0.6); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 1rem; }
+.price-card.featured .price-name { color: rgba(255,255,255,0.8); }
+
+.price-amount {
+  font-family: 'Syne', sans-serif;
+  font-size: 40px;
+  font-weight: 800;
+  color: white;
+  line-height: 1;
+  margin-bottom: 4px;
+}
+
+.price-period { font-size: 13px; color: rgba(255,255,255,0.5); margin-bottom: 1.5rem; }
+
+.price-features { list-style: none; margin-bottom: 2rem; }
+.price-features li { font-size: 14px; color: rgba(255,255,255,0.75); padding: 6px 0; display: flex; gap: 8px; align-items: center; font-weight: 300; }
+.price-features li::before { content: '✓'; color: var(--green); font-weight: 700; flex-shrink: 0; }
+.price-card.featured .price-features li { color: rgba(255,255,255,0.9); }
+
+.btn-price {
+  display: block;
+  text-align: center;
+  padding: 12px;
+  border-radius: 10px;
+  font-size: 15px;
+  font-weight: 500;
+  text-decoration: none;
+  transition: all 0.2s;
+  border: 1px solid rgba(255,255,255,0.2);
+  color: white;
+}
+
+.btn-price:hover { background: rgba(255,255,255,0.1); }
+.price-card.featured .btn-price { background: white; color: var(--blue); border-color: white; }
+.price-card.featured .btn-price:hover { background: var(--gray-100); }
+
+/* WHO */
+.who-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1.5rem;
+  margin-top: 3.5rem;
+}
+
+.who-card {
+  text-align: center;
+  padding: 2rem 1rem;
+  border: 1px solid var(--gray-200);
+  border-radius: 16px;
+  transition: all 0.3s;
+}
+
+.who-card:hover { border-color: var(--blue); box-shadow: 0 8px 30px rgba(27,79,216,0.1); transform: translateY(-4px); }
+.who-icon { font-size: 36px; margin-bottom: 1rem; }
+.who-title { font-family: 'Syne', sans-serif; font-size: 15px; font-weight: 700; color: var(--navy); margin-bottom: 0.5rem; }
+.who-desc { font-size: 13px; color: var(--gray-600); line-height: 1.5; font-weight: 300; }
+
+/* CTA */
+.cta-section {
+  background: linear-gradient(135deg, var(--blue) 0%, var(--blue-mid) 100%);
+  text-align: center;
+  padding: 100px 2rem;
+}
+
+.cta-section h2 {
+  font-family: 'Syne', sans-serif;
+  font-size: clamp(28px, 4vw, 48px);
+  font-weight: 800;
+  color: white;
+  letter-spacing: -0.02em;
+  margin-bottom: 1rem;
+}
+
+.cta-section p { font-size: 18px; color: rgba(255,255,255,0.8); margin-bottom: 2.5rem; font-weight: 300; }
+
+.btn-cta {
+  display: inline-block;
+  padding: 16px 36px;
+  background: white;
+  color: var(--blue);
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: all 0.2s;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+}
+
+.btn-cta:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(0,0,0,0.2); }
+
+.cta-note { font-size: 13px; color: rgba(255,255,255,0.6); margin-top: 1rem; }
+
+/* FOOTER */
+footer {
+  background: var(--navy);
+  padding: 3rem 2rem;
+  text-align: center;
+}
+
+.footer-logo { font-family: 'Syne', sans-serif; font-size: 20px; font-weight: 800; color: white; margin-bottom: 0.5rem; }
+.footer-logo span { color: #60A5FA; }
+.footer-desc { font-size: 13px; color: rgba(255,255,255,0.4); margin-bottom: 1.5rem; }
+.footer-links { display: flex; gap: 2rem; justify-content: center; margin-bottom: 1.5rem; }
+.footer-links a { font-size: 13px; color: rgba(255,255,255,0.5); text-decoration: none; }
+.footer-links a:hover { color: white; }
+.footer-copy { font-size: 12px; color: rgba(255,255,255,0.3); }
+
+/* ANIMATIONS */
+.fade-up {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.fade-up.visible { opacity: 1; transform: translateY(0); }
+.fade-up:nth-child(2) { transition-delay: 0.1s; }
+.fade-up:nth-child(3) { transition-delay: 0.2s; }
+.fade-up:nth-child(4) { transition-delay: 0.3s; }
+
+@media (max-width: 768px) {
+  .hero-inner { grid-template-columns: 1fr; }
+  .hero-visual { display: none; }
+  .steps-grid { grid-template-columns: 1fr; }
+  .features-grid { grid-template-columns: 1fr; }
+  .pricing-grid { grid-template-columns: 1fr; }
+  .price-card.featured { transform: none; }
+  .who-grid { grid-template-columns: repeat(2, 1fr); }
+  .nav-links { display: none; }
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-logo">Lex<span>AI</span></div>
+  <div class="nav-links">
+    <a href="#hogyan">Hogyan működik</a>
+    <a href="#funkciok">Funkciók</a>
+    <a href="#arak">Árak</a>
+    <a href="#kinek">Kinek való</a>
+  </div>
+  <a href="app.html" class="nav-cta">Ingyenes próba →</a>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-inner">
+    <div>
+      <div class="hero-badge">
+        <div class="hero-badge-dot"></div>
+        Magyar jog · PTK alapján · AI-powered
+      </div>
+      <h1>Szerződéselemzés <span class="accent">másodpercek</span> alatt</h1>
+      <p>Töltsd fel a szerződést és az AI azonnal megmondja mi kockázatos, mi hiányzik, és hogyan javítsd – magyar jogszabályok alapján.</p>
+      <div class="hero-actions">
+        <a href="app.html" class="btn-hero">Próbáld ki ingyen →</a>
+        <a href="#hogyan" class="btn-hero-ghost">Hogyan működik?</a>
+      </div>
+      <div class="hero-stats">
+        <div>
+          <div class="hero-stat-num">30 mp</div>
+          <div class="hero-stat-label">Elemzési idő</div>
+        </div>
+        <div>
+          <div class="hero-stat-num">PTK</div>
+          <div class="hero-stat-label">Alapján elemez</div>
+        </div>
+        <div>
+          <div class="hero-stat-num">100%</div>
+          <div class="hero-stat-label">Magyar nyelvű</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="hero-visual">
+      <div class="mock-card">
+        <div class="mock-header">
+          <div class="mock-dot" style="background:#FF5F57"></div>
+          <div class="mock-dot" style="background:#FFBD2E"></div>
+          <div class="mock-dot" style="background:#28C840"></div>
+          <div class="mock-title">LexAI – Elemzés eredménye</div>
+        </div>
+        <div class="mock-body">
+          <div class="mock-score-row">
+            <div class="mock-score-circle">
+              <div class="mock-score-num">32</div>
+              <div class="mock-score-sub">/ 100</div>
+            </div>
+            <div>
+              <div class="mock-score-label">Magas kockázat</div>
+              <div class="mock-score-desc">Ez a szerződés súlyosan hátrányos a megrendelő számára</div>
+            </div>
+          </div>
+          <div class="mock-risk high">
+            <div class="mock-dot-sm"></div>
+            <div style="flex:1">
+              <div class="mock-risk-title">Kötbér kizárva</div>
+              <div class="mock-risk-desc">A vállalkozó késedelem esetén sem fizet</div>
+            </div>
+            <div class="mock-badge">Magas</div>
+          </div>
+          <div class="mock-risk med">
+            <div class="mock-dot-sm"></div>
+            <div style="flex:1">
+              <div class="mock-risk-title">Szavatosság kizárva</div>
+              <div class="mock-risk-desc">Hibás teljesítés esetén nincs jogorvoslat</div>
+            </div>
+            <div class="mock-badge">Közepes</div>
+          </div>
+          <div class="mock-risk low">
+            <div class="mock-dot-sm"></div>
+            <div style="flex:1">
+              <div class="mock-risk-title">Illetékesség egyoldalú</div>
+              <div class="mock-risk-desc">Csak a vállalkozó bírósága illetékes</div>
+            </div>
+            <div class="mock-badge">Alacsony</div>
+          </div>
+          <div class="mock-fix">
+            <div class="mock-fix-label">✓ Javítási javaslat</div>
+            <div class="mock-fix-text">„Késedelem esetén a Vállalkozó napi 0,5% kötbért köteles fizetni a vállalkozói díj után."</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section class="how-section" id="hogyan">
+  <div class="section-inner">
+    <div class="section-label">Hogyan működik</div>
+    <div class="section-title">3 lépés, 30 másodperc</div>
+    <div class="section-sub">Nincs szükség jogi tudásra. Az AI elvégzi a munkát helyetted.</div>
+    <div class="steps-grid">
+      <div class="step-card fade-up">
+        <div class="step-num">01</div>
+        <div class="step-icon">📄</div>
+        <div class="step-title">Feltöltöd a szerződést</div>
+        <div class="step-desc">Másold be a szöveget vagy töltsd fel a PDF fájlt. Bármilyen típusú szerződést elfogadunk.</div>
+      </div>
+      <div class="step-card fade-up">
+        <div class="step-num">02</div>
+        <div class="step-icon">🔍</div>
+        <div class="step-title">Az AI elemzi</div>
+        <div class="step-desc">A mesterséges intelligencia PTK alapján átvizsgálja a szerződés minden pontját, azonosítja a kockázatokat.</div>
+      </div>
+      <div class="step-card fade-up">
+        <div class="step-num">03</div>
+        <div class="step-icon">✅</div>
+        <div class="step-title">Megkapod az eredményt</div>
+        <div class="step-desc">Kockázati pontszám, konkrét javítási javaslatok, hiányosságok – PDF-ben letölthető összefoglalóval.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<section id="funkciok">
+  <div class="section-inner">
+    <div class="section-label">Funkciók</div>
+    <div class="section-title">Minden amit egy jó <br>szerződéshez kell</div>
+    <div class="features-grid">
+      <div class="feature-card fade-up">
+        <div class="feature-icon">⚠️</div>
+        <div>
+          <div class="feature-title">Kockázatelemzés</div>
+          <div class="feature-desc">Piros/sárga/zöld jelzésekkel azonosítja a veszélyes pontokat. Pontszám 0-100-ig.</div>
+        </div>
+      </div>
+      <div class="feature-card fade-up">
+        <div class="feature-icon">🔧</div>
+        <div>
+          <div class="feature-title">Konkrét javítások</div>
+          <div class="feature-desc">Nem csak megmondja mi a baj – konkrét, beilleszthető szövegjavaslatot ad minden hibás pontra.</div>
+        </div>
+      </div>
+      <div class="feature-card fade-up">
+        <div class="feature-icon">✍️</div>
+        <div>
+          <div class="feature-title">Szerződésgenerálás</div>
+          <div class="feature-desc">Adj meg néhány adatot és az AI megírja a teljes szerződést. Letölthető PDF-ben.</div>
+        </div>
+      </div>
+      <div class="feature-card fade-up">
+        <div class="feature-icon">📋</div>
+        <div>
+          <div class="feature-title">Hiányosságok</div>
+          <div class="feature-desc">Megmutatja mi hiányzik a szerződésből ami kötelező vagy ajánlott lenne a PTK szerint.</div>
+        </div>
+      </div>
+      <div class="feature-card fade-up">
+        <div class="feature-icon">📊</div>
+        <div>
+          <div class="feature-title">PDF összefoglaló</div>
+          <div class="feature-desc">Az elemzés eredménye egy kattintással letölthető, nyomtatható PDF dokumentumként.</div>
+        </div>
+      </div>
+      <div class="feature-card fade-up">
+        <div class="feature-icon">🇭🇺</div>
+        <div>
+          <div class="feature-title">Magyar jogra optimalizálva</div>
+          <div class="feature-desc">PTK, Mt., és egyéb magyar jogszabályok alapján elemez. Nem fordítás – natív magyar megoldás.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- WHO IS IT FOR -->
+<section class="how-section" id="kinek">
+  <div class="section-inner">
+    <div class="section-label">Kinek való</div>
+    <div class="section-title">Nem kell jogász <br>minden szerződéshez</div>
+    <div class="section-sub">A LexAI azoknak készült, akik rendszeresen kötnek szerződéseket de nincs házon belüli jogászuk.</div>
+    <div class="who-grid">
+      <div class="who-card fade-up">
+        <div class="who-icon">🏢</div>
+        <div class="who-title">KKV-k</div>
+        <div class="who-desc">Vállalkozási, megbízási és szállítói szerződések gyors ellenőrzése</div>
+      </div>
+      <div class="who-card fade-up">
+        <div class="who-icon">🏠</div>
+        <div class="who-title">Ingatlanosok</div>
+        <div class="who-desc">Bérleti és adásvételi szerződések kockázatelemzése</div>
+      </div>
+      <div class="who-card fade-up">
+        <div class="who-icon">👥</div>
+        <div class="who-title">HR szakemberek</div>
+        <div class="who-desc">Munkaszerződések és megbízási szerződések ellenőrzése</div>
+      </div>
+      <div class="who-card fade-up">
+        <div class="who-icon">⚖️</div>
+        <div class="who-title">Ügyvédek</div>
+        <div class="who-desc">Gyorsabb előszűrés és összefoglaló készítés ügyfelek számára</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PRICING -->
+<section class="pricing-section" id="arak">
+  <div class="section-inner">
+    <div class="section-label">Árak</div>
+    <div class="section-title">Átlátható árazás</div>
+    <div class="section-sub">Nincs rejtett díj. Bármikor lemondható.</div>
+    <div class="pricing-grid">
+      <div class="price-card fade-up">
+        <div class="price-name">Starter</div>
+        <div class="price-amount">9 900</div>
+        <div class="price-period">Ft / hónap</div>
+        <ul class="price-features">
+          <li>10 elemzés / hónap</li>
+          <li>Kockázatelemzés</li>
+          <li>Javítási javaslatok</li>
+          <li>PDF összefoglaló</li>
+        </ul>
+        <a href="app.html" class="btn-price">Kipróbálom</a>
+      </div>
+      <div class="price-card featured fade-up">
+        <div class="price-popular">Legnépszerűbb</div>
+        <div class="price-name">Pro</div>
+        <div class="price-amount">24 900</div>
+        <div class="price-period">Ft / hónap</div>
+        <ul class="price-features">
+          <li>50 elemzés / hónap</li>
+          <li>Szerződésgenerálás</li>
+          <li>Kockázatelemzés</li>
+          <li>Javítási javaslatok</li>
+          <li>PDF összefoglaló</li>
+          <li>Email támogatás</li>
+        </ul>
+        <a href="app.html" class="btn-price">Kipróbálom</a>
+      </div>
+      <div class="price-card fade-up">
+        <div class="price-name">Iroda</div>
+        <div class="price-amount">59 900</div>
+        <div class="price-period">Ft / hónap</div>
+        <ul class="price-features">
+          <li>Korlátlan elemzés</li>
+          <li>Korlátlan generálás</li>
+          <li>5 felhasználó</li>
+          <li>Prioritás támogatás</li>
+          <li>Egyedi sablonok</li>
+        </ul>
+        <a href="app.html" class="btn-price">Kapcsolat</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta-section">
+  <h2>Próbáld ki most – ingyen</h2>
+  <p>Nincs szükség bankkártyára. Az első elemzés teljesen ingyenes.</p>
+  <a href="app.html" class="btn-cta">Elemzés indítása →</a>
+  <div class="cta-note">Nincs elköteleződés · Bármikor lemondható · Magyar támogatás</div>
+</section>
+
+<!-- ALKALMAZÁS SZEKCIÓ -->
+<section id="alkalmazas" style="background:#F8FAFC;padding:80px 2rem">
+<div style="max-width:700px;margin:0 auto;text-align:center">
+  <div style="font-size:12px;font-weight:600;color:#1B4FD8;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:1rem">Alkalmazás</div>
+  <h2 style="font-family:'Syne',sans-serif;font-size:36px;font-weight:700;color:#0A1628;letter-spacing:-0.02em;margin-bottom:1rem">Készen állsz?</h2>
+  <p style="font-size:17px;color:#475569;font-weight:300;margin-bottom:2.5rem;line-height:1.7">Elemezd az első szerződésedet most – ingyenesen, regisztráció nélkül.</p>
+  <a href="app.html" style="display:inline-block;padding:18px 40px;background:#1B4FD8;color:white;border-radius:12px;font-size:18px;font-weight:600;text-decoration:none;font-family:'Syne',sans-serif;box-shadow:0 4px 20px rgba(27,79,216,0.25);transition:all 0.2s">Alkalmazás megnyitása →</a>
+  <div style="margin-top:1.5rem;font-size:13px;color:#94A3B8">Szerződéselemzés · Szerződésgenerálás · PDF letöltés</div>
+</div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-logo">Lex<span>AI</span></div>
+  <div class="footer-desc">AI-alapú jogi szerződéselemzés magyar vállalkozásoknak</div>
+  <div class="footer-links">
+    <a href="app.html">Alkalmazás</a>
+    <a href="#arak">Árak</a>
+    <a href="#">ÁSZF</a>
+    <a href="#">Adatvédelem</a>
+    <a href="#">Kapcsolat</a>
+  </div>
+  <div class="footer-copy">© 2025 LexAI · Kizárólag tájékoztatási céllal. Nem minősül jogi tanácsadásnak.</div>
+</footer>
+
+<script>
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+}, { threshold: 0.1 });
+document.querySelectorAll('.fade-up').forEach(el => observer.observe(el));
+
+const SAMPLE = `VÁLLALKOZÁSI SZERZŐDÉS\n\nLétrejött egyrészről Kovács Építő Kft. (székhely: 1051 Budapest, Vörösmarty tér 1.) mint Vállalkozó, másrészről Nagy János (lakcím: 1113 Budapest, Bocskai út 12.) mint Megrendelő között:\n\n1. A Vállalkozó vállalja festési és mázolási munkák elvégzését.\n2. A munka ellenértéke 800.000 Ft, amelyet a Megrendelő a munkák befejezése után fizet.\n3. A Vállalkozó késedelem esetén semmilyen kötbér megfizetésére nem köteles.\n4. A Megrendelő bármikor elállhat, de a teljes díjat köteles megfizetni.\n5. A jótállás és szavatosság kizárt.\n6. A szerződés határozatlan időre jön létre, felmondási idő nélkül.`;
+
+let lastResultApp = null;
+
+function saveKey(){
+  const k=document.getElementById('api-key-app').value.trim();
+  if(!k.startsWith('sk-ant-')){alert('Érvénytelen kulcs!');return;}
+  localStorage.setItem('lexai_key',k);
+  document.getElementById('api-setup-app').style.display='none';
+  document.getElementById('api-saved-app').style.display='flex';
+}
+function resetKey(){
+  localStorage.removeItem('lexai_key');
+  document.getElementById('api-setup-app').style.display='flex';
+  document.getElementById('api-saved-app').style.display='none';
+}
+function getKey(){return localStorage.getItem('lexai_key');}
+function loadSampleApp(){document.getElementById('contract-text-app').value=SAMPLE;}
+function showErr(m){const b=document.getElementById('error-app');b.textContent=m;b.style.display='block';}
+function hideErr(){document.getElementById('error-app').style.display='none';}
+function resetApp(){document.getElementById('results-app').style.display='none';document.getElementById('contract-text-app').value='';hideErr();}
+
+async function analyzeApp(){
+  const key=getKey();
+  if(!key){showErr('Add meg az API kulcsodat!');return;}
+  const text=document.getElementById('contract-text-app').value.trim();
+  if(!text){showErr('Illeszd be a szerződés szövegét!');return;}
+  hideErr();
+  document.getElementById('analyze-btn-app').disabled=true;
+  document.getElementById('loading-app').style.display='block';
+  document.getElementById('results-app').style.display='none';
+  const sys=`Te egy tapasztalt magyar jogi elemző AI vagy, PTK-szakértő. Válaszolj KIZÁRÓLAG érvényes JSON-ban:
+{"score":0-100,"verdict":"1 mondatos ítélet","risks":[{"level":"magas|közepes|alacsony","title":"...","desc":"..."}],"fixes":[{"problem":"...","fix":"...","why":"..."}],"missing":["..."],"positives":["..."],"summary":"2-3 mondatos összefoglalás"}
+Csak JSON!`;
+  try{
+    const res=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+      body:JSON.stringify({model:'claude-sonnet-4-5',max_tokens:2000,system:sys,messages:[{role:'user',content:'Elemezd: '+text.substring(0,6000)}]})
+    });
+    if(!res.ok){const e=await res.json();throw new Error(e.error?.message||'API hiba');}
+    const data=await res.json();
+    const raw=data.content.map(i=>i.text||'').join('');
+    const r=JSON.parse(raw.replace(/```json|```/g,'').trim());
+    lastResultApp=r;
+    renderApp(r);
+  }catch(e){
+    document.getElementById('loading-app').style.display='none';
+    showErr('Hiba: '+e.message);
+  }
+  document.getElementById('analyze-btn-app').disabled=false;
+}
+
+function renderApp(r){
+  document.getElementById('loading-app').style.display='none';
+  const sc=r.score>=70?'#10B981':r.score>=40?'#F59E0B':'#EF4444';
+  const sb=r.score>=70?'#ECFDF5':r.score>=40?'#FFFBEB':'#FEF2F2';
+  const sl=r.score>=70?'Alacsony kockázat':r.score>=40?'Közepes kockázat':'Magas kockázat';
+  document.getElementById('score-app').innerHTML=`<div style="background:${sb};border:1px solid #E2E8F0;border-radius:16px;padding:1.75rem;margin-bottom:1.5rem;display:flex;align-items:center;gap:1.5rem"><div style="width:80px;height:80px;border-radius:50%;border:3px solid ${sc};display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0"><div style="font-family:'Syne',sans-serif;font-size:28px;font-weight:700;color:${sc};line-height:1">${r.score}</div><div style="font-size:10px;color:${sc}">/100</div></div><div><div style="font-family:'Syne',sans-serif;font-size:20px;font-weight:700;color:${sc};margin-bottom:6px">${sl}</div><div style="font-size:14px;color:#475569">${r.verdict}</div></div></div>`;
+  let fh='<div style="font-size:11px;font-weight:600;color:#94A3B8;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:0.75rem">Javítási javaslatok</div>';
+  (r.fixes||[]).forEach((f,i)=>{fh+=`<div style="padding:14px;border-radius:10px;margin-bottom:10px;border:1px solid #BBF7D0;background:#F0FDF4"><div style="font-size:11px;font-weight:600;color:#94A3B8;text-transform:uppercase;margin-bottom:6px">${i+1}. javítás</div>${f.problem?`<div style="font-size:12px;color:#EF4444;text-decoration:line-through;margin-bottom:6px">${f.problem}</div>`:''}<div style="font-size:13px;color:#166534;font-weight:500;margin-bottom:4px">✓ ${f.fix}</div><div style="font-size:12px;color:#94A3B8">${f.why}</div></div>`;});
+  document.getElementById('fixes-app').innerHTML=fh||'<div style="color:#10B981;font-size:13px">Nem találtunk javítandó pontot.</div>';
+  const lm={'magas':'#EF4444','közepes':'#F59E0B','alacsony':'#10B981'};
+  const lb={'magas':'#FEF2F2','közepes':'#FFFBEB','alacsony':'#ECFDF5'};
+  let rh='<div style="font-size:11px;font-weight:600;color:#94A3B8;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:0.75rem">Kockázatok</div>';
+  (r.risks||[]).forEach(risk=>{const c=lm[risk.level]||'#94A3B8';const bg=lb[risk.level]||'#F8FAFC';rh+=`<div style="display:flex;gap:10px;padding:12px;border-radius:10px;margin-bottom:8px;background:${bg};border:1px solid ${c}33"><div style="width:8px;height:8px;border-radius:50%;background:${c};flex-shrink:0;margin-top:4px"></div><div><div style="font-size:14px;font-weight:600;color:#1E293B;margin-bottom:2px">${risk.title}</div><div style="font-size:13px;color:#475569">${risk.desc}</div></div></div>`;});
+  document.getElementById('risks-app').innerHTML=rh;
+  let mh='<div style="font-size:11px;font-weight:600;color:#94A3B8;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:0.75rem">Hiányosságok</div>';
+  (r.missing||[]).forEach(m=>{mh+=`<div style="padding:10px 14px;border-left:3px solid #F59E0B;background:#FFFBEB;border-radius:0 8px 8px 0;font-size:13px;margin-bottom:6px">${m}</div>`;});
+  document.getElementById('missing-app').innerHTML=mh;
+  let ph='<div style="font-size:11px;font-weight:600;color:#94A3B8;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:0.75rem">Pozitívumok</div>';
+  (r.positives||[]).forEach(p=>{ph+=`<div style="padding:10px 14px;border-left:3px solid #10B981;background:#ECFDF5;border-radius:0 8px 8px 0;font-size:13px;margin-bottom:6px">${p}</div>`;});
+  document.getElementById('positives-app').innerHTML=ph;
+  document.getElementById('summary-app').innerHTML=`<div style="font-size:11px;font-weight:600;color:#94A3B8;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:0.75rem">Összefoglalás</div><div style="background:#F8FAFC;border:1px solid #E2E8F0;border-radius:12px;padding:1.25rem;font-size:14px;line-height:1.7;color:#1E293B">${r.summary}</div>`;
+  document.getElementById('results-app').style.display='block';
+  document.getElementById('results-app').scrollIntoView({behavior:'smooth'});
+}
+
+function downloadPDFApp(){
+  if(!lastResultApp||!window.jspdf)return;
+  const {jsPDF}=window.jspdf;
+  const doc=new jsPDF();
+  const r=lastResultApp;
+  let y=20;
+  const add=(t,b,s)=>{doc.setFont('helvetica',b?'bold':'normal');doc.setFontSize(s||11);const l=doc.splitTextToSize(t,170);if(y+l.length*6>280){doc.addPage();y=20;}doc.text(l,20,y);y+=l.length*6+2;};
+  add('LexAI – Szerződéselemzés',true,18);y+=2;
+  add('Dátum: '+new Date().toLocaleDateString('hu-HU'),false,10);y+=4;
+  add('Pontszám: '+r.score+'/100 – '+r.verdict,true,13);y+=6;
+  add('JAVÍTÁSI JAVASLATOK',true,12);y+=2;
+  (r.fixes||[]).forEach((f,i)=>{add((i+1)+'. '+f.fix+' ('+f.why+')',false,10);});
+  y+=4;add('KOCKÁZATOK',true,12);y+=2;
+  (r.risks||[]).forEach(ri=>{add('['+ri.level.toUpperCase()+'] '+ri.title+': '+ri.desc,false,10);});
+  y+=4;add('ÖSSZEFOGLALÁS',true,12);y+=2;add(r.summary||'',false,11);
+  doc.save('lexai-elemzes.pdf');
+}
+
+window.onload=()=>{
+  if(getKey()){
+    document.getElementById('api-setup-app').style.display='none';
+    document.getElementById('api-saved-app').style.display='flex';
+  }
+};
+</script>
+</body>
+</html>
