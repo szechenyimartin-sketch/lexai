@@ -176,14 +176,14 @@ select,input[type=text]{width:100%;padding:10px 14px;border:1px solid var(--g200
       <p>Anthropic API kulcs szükséges. Csak egyszer kell megadni.</p>
       <div class="api-row">
         <input type="password" class="api-input" id="api-key-input" placeholder="sk-ant-..." onkeydown="if(event.key==='Enter')saveKey()">
-        <button class="btn-save" onclick="saveKey()">Mentés</button>
+        <button class="btn-save" onclick="window.saveKey()">Mentés</button>
       </div>
     </div>
   </div>
   <div class="api-ok" id="api-ok">
     <span style="color:var(--green);font-size:18px">✓</span>
     <span style="font-size:13px;color:#065F46;font-weight:500">API kulcs beállítva – készen állsz!</span>
-    <button onclick="resetKey()" style="font-size:12px;color:var(--g400);background:none;border:none;cursor:pointer;margin-left:auto">módosít</button>
+    <button onclick="window.resetKey()" style="font-size:12px;color:var(--g400);background:none;border:none;cursor:pointer;margin-left:auto">módosít</button>
   </div>
 
   <!-- MAIN TABS -->
@@ -464,6 +464,25 @@ select,input[type=text]{width:100%;padding:10px 14px;border:1px solid var(--g200
 // PDF.js setup
 // PDF.js worker will be set up when needed
 
+// Global key storage
+window._lexaiKey = '';
+
+window.saveKey = function(){
+  var k = document.getElementById('api-key-input').value.trim();
+  if(!k || k.length < 10){alert('Add meg az API kulcsodat!');return;}
+  window._lexaiKey = k;
+  try{localStorage.setItem('lk', k);}catch(e){}
+  document.getElementById('api-bar').classList.add('hidden');
+  document.getElementById('api-ok').style.display='flex';
+};
+
+window.resetKey = function(){
+  window._lexaiKey = '';
+  try{localStorage.removeItem('lk');}catch(e){}
+  document.getElementById('api-bar').classList.remove('hidden');
+  document.getElementById('api-ok').style.display='none';
+};
+
 let _key='', currentInp='text', uploadedText='', lastResult=null, regenText='', genText='', abortAnalysis=false;
 
 // ---- API KEY ----
@@ -482,8 +501,9 @@ function resetKey(){
   document.getElementById('api-ok').style.display='none';
 }
 function getKey(){
-  if(_key)return _key;
-  try{var s=localStorage.getItem('lk');if(s){_key=s;return s;}}catch(e){}
+  if(window._lexaiKey) return window._lexaiKey;
+  if(_key) return _key;
+  try{var s=localStorage.getItem('lk');if(s){_key=s;window._lexaiKey=s;return s;}}catch(e){}
   return null;
 }
 
@@ -773,20 +793,22 @@ async function analyze(){
   if(!text){showErr('analyze-error','Illeszd be a szerződés szövegét vagy tölts fel fájlt!');return;}
   hideErr('analyze-error');
 
-  // Clean garbage/binary characters from uploaded files
-  text = text.replace(/[ --]/g, '');
-  text = text.replace(/�/g, '');
-  // Keep only readable characters (latin, hungarian, punctuation)
-  text = text.split('').filter(function(c){
-    var code = c.charCodeAt(0);
-    return (code >= 32 && code <= 126) || // ASCII
-           (code >= 160 && code <= 687) || // Latin extended
-           (code >= 8192 && code <= 8303) || // General punctuation
-           c === '\n' || c === '\t' || c === '\r';
-  }).join('');
-  text = text.replace(/  +/g,' ').replace(/\n{4,}/g,'\n\n').trim();
+  // Clean garbage characters
+  var cleanChars = [];
+  for(var ci=0; ci<text.length; ci++){
+    var code = text.charCodeAt(ci);
+    if((code >= 32 && code <= 126) || 
+       (code >= 160 && code <= 687) ||
+       code === 10 || code === 13 || code === 9){
+      cleanChars.push(text[ci]);
+    }
+  }
+  text = cleanChars.join('').replace(/  +/g,' ').replace(/
+{4,}/g,'
 
-  if(text.length < 80){showErr('analyze-error','A feltöltött fájlból nem sikerült szöveget kiolvasni. Próbálj PDF formátumot vagy másold be a szöveget!');return;}
+').trim();
+
+  if(text.length < 80){showErr('analyze-error','A feltöltött fájlból nem sikerült szöveget kiolvasni. Próbálj PDF formátumot!');return;}
 
   var type=document.getElementById('contract-type').value;
   abortAnalysis=false;
@@ -1196,6 +1218,7 @@ document.addEventListener('DOMContentLoaded',function(){
   }
   var k=getKey();
   if(k){
+    window._lexaiKey=k;
     document.getElementById('api-bar').classList.add('hidden');
     document.getElementById('api-ok').style.display='flex';
   }
