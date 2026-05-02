@@ -1,0 +1,1823 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LexAI – Jogi Szerződéselemző</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<!-- PDF.js for PDF reading -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<!-- JSZip for DOCX reading -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<style>
+:root{
+  --ink:#0A0F1A;--ink2:#1A2332;
+  --gold:#B8912A;--gold2:#D4AF5A;--gold-bg:#FDF8EE;
+  --cream:#FAFAF7;--white:#FFFFFF;
+  --border:#E8E3DA;--border2:#D4CFC4;
+  --text:#2C3444;--text2:#6B7587;--text3:#9AA3B0;
+  --red:#C0392B;--red-bg:#FDF0EE;--red-border:#F0C4BE;
+  --orange:#C67C1A;--orange-bg:#FDF5E6;--orange-border:#F0D9A8;
+  --green:#1A7A4A;--green-bg:#EDF7F2;--green-border:#A8DFC0;
+  --blue:#1A4F8A;--blue-bg:#EEF4FC;--blue-border:#A8C4E8;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--text);min-height:100vh}
+
+nav{background:var(--ink);height:64px;display:flex;align-items:center;justify-content:space-between;padding:0 2.5rem;position:sticky;top:0;z-index:100;border-bottom:1px solid var(--gold)}
+.logo{font-family:'Cormorant',serif;font-size:22px;font-weight:600;color:var(--gold2);letter-spacing:0.04em}
+.logo-sub{font-size:11px;color:rgba(255,255,255,0.35);letter-spacing:0.15em;text-transform:uppercase;margin-left:10px;font-family:'DM Sans',sans-serif}
+.back-btn{font-size:12px;color:rgba(255,255,255,0.45);text-decoration:none;border:1px solid rgba(255,255,255,0.12);padding:6px 14px;border-radius:3px;transition:all 0.2s}
+.back-btn:hover{color:var(--gold2);border-color:var(--gold)}
+
+main{max-width:1000px;margin:0 auto;padding:2.5rem 1.5rem}
+
+/* API */
+.api-bar{background:var(--white);border:1px solid var(--gold);border-radius:6px;padding:1.25rem 1.5rem;margin-bottom:2rem;display:flex;gap:1rem;align-items:center;box-shadow:0 2px 12px rgba(184,145,42,0.06)}
+.api-bar.hidden{display:none}
+.api-icon{width:40px;height:40px;background:var(--ink);border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.api-bar h3{font-size:14px;font-weight:500;color:var(--ink);margin-bottom:3px}
+.api-bar p{font-size:12px;color:var(--text3);margin-bottom:8px}
+.api-row{display:flex;gap:8px}
+.api-input{flex:1;padding:8px 12px;border:1px solid var(--border2);border-radius:4px;font-size:13px;font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--ink)}
+.api-input:focus{outline:none;border-color:var(--gold)}
+.btn-key{padding:8px 18px;background:var(--ink);color:var(--gold2);border:none;border-radius:4px;font-size:13px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif}
+.btn-key:hover{background:var(--ink2)}
+.api-ok{display:none;align-items:center;gap:10px;background:var(--green-bg);border:1px solid var(--green-border);border-radius:6px;padding:10px 16px;margin-bottom:2rem;font-size:13px;color:var(--green);font-weight:500}
+
+/* TABS */
+.page-tabs{display:flex;border-bottom:1px solid var(--border);margin-bottom:2rem}
+.page-tab{padding:14px 28px;font-size:14px;font-weight:400;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;color:var(--text3);background:none;border-top:none;border-left:none;border-right:none;font-family:'DM Sans',sans-serif;letter-spacing:0.01em;transition:all 0.2s}
+.page-tab.active{color:var(--ink);border-bottom-color:var(--gold);font-weight:500}
+.page{display:none}.page.active{display:block}
+
+/* SECTION */
+.sec-title{font-family:'Cormorant',serif;font-size:28px;font-weight:600;color:var(--ink);margin-bottom:4px;letter-spacing:-0.01em}
+.sec-sub{font-size:14px;color:var(--text3);font-weight:300;margin-bottom:1.5rem}
+
+/* CARD */
+.card{background:var(--white);border:1px solid var(--border);border-radius:6px;padding:2rem;margin-bottom:1.5rem;box-shadow:0 1px 6px rgba(0,0,0,0.03)}
+.card-label{font-size:10px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;color:var(--text3);margin-bottom:1rem}
+
+/* INPUT SWITCH */
+.inp-switch{display:flex;border:1px solid var(--border2);border-radius:4px;overflow:hidden;margin-bottom:1.25rem}
+.inp-sw-btn{flex:1;padding:10px;text-align:center;font-size:13px;font-weight:500;cursor:pointer;background:var(--cream);color:var(--text3);border:none;font-family:'DM Sans',sans-serif;transition:all 0.2s}
+.inp-sw-btn.active{background:var(--ink);color:var(--gold2)}
+.inp-panel{display:none}.inp-panel.active{display:block}
+
+textarea{width:100%;border:1px solid var(--border2);border-radius:4px;padding:14px;font-size:14px;font-family:'DM Sans',sans-serif;color:var(--ink);background:var(--cream);resize:vertical;line-height:1.7;transition:border-color 0.2s}
+textarea:focus{outline:none;border-color:var(--gold)}
+textarea::placeholder{color:var(--text3)}
+
+/* DROPZONE */
+.dropzone{border:2px dashed var(--border2);border-radius:6px;padding:2.5rem;text-align:center;cursor:pointer;background:var(--cream);transition:all 0.2s}
+.dropzone:hover,.dropzone.drag{border-color:var(--gold);background:var(--gold-bg)}
+.dropzone.done{border-color:var(--green);border-style:solid;background:var(--green-bg)}
+.dz-icon{font-size:32px;margin-bottom:10px;opacity:0.5}
+.dz-title{font-size:15px;font-weight:500;color:var(--ink);margin-bottom:4px}
+.dz-sub{font-size:12px;color:var(--text3)}
+.dz-formats{display:flex;gap:6px;justify-content:center;margin-top:8px;flex-wrap:wrap}
+.dz-fmt{font-size:10px;font-weight:600;padding:3px 8px;border-radius:3px;letter-spacing:0.05em;background:var(--border);color:var(--text2)}
+.dz-result{margin-top:10px;font-size:13px;font-weight:500;display:none}
+.prog-wrap{margin-top:12px;display:none}
+.prog-bar{background:var(--border);border-radius:10px;height:3px;overflow:hidden}
+.prog-fill{height:100%;background:linear-gradient(90deg,var(--gold),var(--gold2));border-radius:10px;transition:width 0.4s;width:0}
+.prog-txt{font-size:11px;color:var(--text3);margin-top:4px}
+
+/* FORM */
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem}
+.form-group{display:flex;flex-direction:column;gap:5px}
+.form-group label{font-size:11px;font-weight:600;color:var(--text2);letter-spacing:0.04em;text-transform:uppercase}
+.form-group input,.form-group select,.form-group textarea{padding:10px 12px;border:1px solid var(--border2);border-radius:4px;font-size:14px;font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--ink);transition:border-color 0.2s}
+.form-group input:focus,.form-group select:focus,.form-group textarea:focus{outline:none;border-color:var(--gold)}
+
+/* BUTTONS */
+.btn{padding:10px 22px;border-radius:4px;font-size:14px;font-weight:500;cursor:pointer;border:none;font-family:'DM Sans',sans-serif;transition:all 0.2s;display:inline-flex;align-items:center;gap:6px;letter-spacing:0.01em}
+.btn-primary{background:var(--ink);color:var(--gold2)}.btn-primary:hover{background:var(--ink2);transform:translateY(-1px)}
+.btn-primary:disabled{opacity:0.5;cursor:not-allowed;transform:none}
+.btn-gold{background:var(--gold);color:white}.btn-gold:hover{background:var(--gold2)}
+.btn-outline{background:transparent;color:var(--text2);border:1px solid var(--border2)}.btn-outline:hover{border-color:var(--ink);color:var(--ink)}
+.btn-green{background:var(--green);color:white}.btn-green:hover{background:#166040}
+.btn-red{background:transparent;color:var(--red);border:1px solid var(--red-border);font-size:12px;padding:6px 14px}.btn-red:hover{background:var(--red);color:white}
+.btn-row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.type-sel{padding:10px 12px;border:1px solid var(--border2);border-radius:4px;font-size:13px;font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--ink);min-width:180px}
+.type-sel:focus{outline:none;border-color:var(--gold)}
+.char-count{font-size:11px;color:var(--text3);text-align:right;margin-top:4px}
+
+/* LOADING */
+.loading{display:none;padding:4rem;text-align:center}
+.loading.show{display:block}
+.spinner{width:40px;height:40px;border:2px solid var(--border);border-top-color:var(--gold);border-radius:50%;animation:spin 0.8s linear infinite;margin:0 auto 1.5rem}
+@keyframes spin{to{transform:rotate(360deg)}}
+.load-title{font-family:'Cormorant',serif;font-size:22px;color:var(--ink);margin-bottom:6px}
+.load-sub{font-size:13px;color:var(--text3);margin-bottom:1.5rem}
+.load-prog-wrap{max-width:300px;margin:0 auto 1.5rem}
+.chunk-info{display:none;background:var(--blue-bg);border:1px solid var(--blue-border);border-radius:4px;padding:10px 14px;font-size:13px;color:var(--blue);margin-bottom:1rem}
+
+/* RESULTS */
+.results{display:none}.results.show{display:block}
+.results-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;padding-bottom:1rem;border-bottom:1px solid var(--border);flex-wrap:wrap;gap:10px}
+.results-title{font-family:'Cormorant',serif;font-size:26px;font-weight:600;color:var(--ink)}
+
+/* SCORE */
+.score-panel{display:flex;align-items:center;gap:2rem;padding:2rem;border-radius:6px;border:1px solid;margin-bottom:1.5rem}
+.score-gauge{position:relative;width:100px;height:100px;flex-shrink:0}
+.score-gauge svg{transform:rotate(-90deg)}
+.score-center{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center}
+.score-big{font-family:'Cormorant',serif;font-size:32px;font-weight:700;line-height:1}
+.score-of{font-size:10px;color:var(--text3);letter-spacing:0.05em}
+.score-verdict-title{font-family:'Cormorant',serif;font-size:22px;font-weight:600;margin-bottom:6px}
+.score-verdict-text{font-size:14px;color:var(--text2);line-height:1.65;font-weight:300}
+
+/* RISK */
+.risk-item{display:flex;gap:12px;padding:14px 16px;border-radius:5px;margin-bottom:8px;align-items:flex-start;border:1px solid;cursor:default;transition:transform 0.15s}
+.risk-item:hover{transform:translateX(3px)}
+.risk-item.high{background:var(--red-bg);border-color:var(--red-border)}
+.risk-item.med{background:var(--orange-bg);border-color:var(--orange-border)}
+.risk-item.low{background:var(--green-bg);border-color:var(--green-border)}
+.risk-bar{width:3px;border-radius:2px;flex-shrink:0;align-self:stretch;min-height:28px}
+.high .risk-bar{background:var(--red)}.med .risk-bar{background:var(--orange)}.low .risk-bar{background:var(--green)}
+.risk-title{font-size:14px;font-weight:500;color:var(--ink);margin-bottom:3px}
+.risk-desc{font-size:13px;color:var(--text2);line-height:1.55;font-weight:300}
+.risk-pill{font-size:10px;font-weight:600;padding:3px 10px;border-radius:20px;margin-left:auto;flex-shrink:0;white-space:nowrap;letter-spacing:0.04em;color:white}
+.high .risk-pill{background:var(--red)}.med .risk-pill{background:var(--orange)}.low .risk-pill{background:var(--green)}
+
+/* FIX */
+.fix-item{padding:16px;border-radius:5px;margin-bottom:10px;border:1px solid var(--green-border);background:var(--green-bg)}
+.fix-idx{font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:8px}
+.fix-before{font-size:12px;color:var(--red);background:var(--red-bg);padding:6px 10px;border-radius:3px;margin-bottom:8px;line-height:1.5;text-decoration:line-through;font-style:italic}
+.fix-after{font-size:13px;color:var(--green);font-weight:500;background:white;padding:8px 10px;border-radius:3px;margin-bottom:6px;line-height:1.55;border:1px solid var(--green-border)}
+.fix-reason{font-size:12px;color:var(--text3);line-height:1.5;font-style:italic}
+
+/* TAGS */
+.tag-miss{padding:9px 14px;border-left:3px solid var(--orange);background:var(--orange-bg);border-radius:0 4px 4px 0;font-size:13px;color:var(--text);margin-bottom:6px;line-height:1.5;font-weight:300}
+.tag-pos{padding:9px 14px;border-left:3px solid var(--green);background:var(--green-bg);border-radius:0 4px 4px 0;font-size:13px;color:var(--text);margin-bottom:6px;line-height:1.5;font-weight:300}
+.summary-box{background:var(--gold-bg);border:1px solid var(--orange-border);border-radius:5px;padding:1.25rem;font-size:14px;line-height:1.8;color:var(--ink);font-weight:300}
+
+/* REGEN */
+.regen-panel{background:var(--blue-bg);border:1px solid var(--blue-border);border-radius:6px;padding:1.75rem;margin-bottom:1.5rem}
+.regen-title{font-family:'Cormorant',serif;font-size:20px;font-weight:600;color:var(--ink);margin-bottom:4px}
+.regen-sub{font-size:13px;color:var(--text2);margin-bottom:1.25rem;line-height:1.6;font-weight:300}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:1rem}
+.chip{padding:5px 12px;background:white;border:1px solid var(--blue-border);border-radius:20px;font-size:12px;color:var(--blue);cursor:pointer;transition:all 0.2s;font-weight:500}
+.chip:hover,.chip.on{background:var(--blue);color:white;border-color:var(--blue)}
+
+/* CONTRACT OUT */
+.contract-out{background:var(--white);border:1px solid var(--border);border-radius:5px;padding:2rem;font-size:13.5px;line-height:1.75;font-family:'DM Sans',sans-serif;color:var(--ink);max-height:600px;overflow-y:auto;margin-top:1rem}
+
+/* SUGGEST */
+.sug-box{background:var(--gold-bg);border:1px solid var(--orange-border);border-radius:6px;padding:1.5rem;margin-top:1rem}
+.sug-item{display:flex;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);align-items:flex-start}
+.sug-item:last-child{border-bottom:none}
+.sug-check{width:15px;height:15px;accent-color:var(--gold);flex-shrink:0;margin-top:2px;cursor:pointer}
+.sug-text{font-size:13px;color:var(--text);line-height:1.5;font-weight:300}
+
+.err-box{display:none;background:var(--red-bg);border:1px solid var(--red-border);border-radius:4px;padding:12px 16px;font-size:13px;color:var(--red);margin-top:1rem}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem}
+
+
+.persp-btn{padding:7px 14px;border-radius:20px;font-size:12px;font-weight:500;cursor:pointer;border:1px solid var(--border2);background:white;color:var(--text2);font-family:'DM Sans',sans-serif;transition:all 0.2s}
+.persp-btn:hover{border-color:var(--gold);color:var(--ink)}
+.persp-btn.active{background:var(--ink);color:var(--gold2);border-color:var(--ink)}
+.deep-issue{padding:16px 18px;border-radius:6px;margin-bottom:10px;border:1px solid}
+.deep-issue.critical{background:#FDF0EE;border-color:#F0C4BE}
+.deep-issue.warning{background:#FDF5E6;border-color:#F0D9A8}
+.deep-issue.info{background:#EEF4FC;border-color:#A8C4E8}
+.deep-issue-title{font-size:14px;font-weight:600;color:var(--ink);flex:1}
+.deep-issue-loc{font-size:11px;color:var(--text3);margin-bottom:6px}
+.deep-issue-desc{font-size:13px;color:var(--text2);line-height:1.6;margin-bottom:10px;font-weight:300}
+.deep-fix-box{background:white;border-radius:4px;padding:12px;border:1px solid var(--green-border);margin-top:8px}
+.deep-fix-label{font-size:10px;font-weight:700;color:var(--green);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:5px}
+.deep-fix-text{font-size:13px;color:var(--ink);line-height:1.6}
+.deep-original{font-size:12px;color:var(--red);text-decoration:line-through;font-style:italic;background:var(--red-bg);padding:6px 10px;border-radius:3px;margin-bottom:8px}
+.hint-box{background:var(--blue-bg);border:1px solid var(--blue-border);border-radius:6px;padding:1.25rem;margin-bottom:1rem}
+.hint-item{display:flex;gap:8px;padding:6px 0;border-bottom:1px solid rgba(168,196,232,0.3);align-items:flex-start}
+.hint-item:last-child{border-bottom:none}
+.hint-check{width:16px;height:16px;accent-color:var(--blue);flex-shrink:0;margin-top:2px;cursor:pointer}
+.hint-text{font-size:13px;color:var(--text);line-height:1.5;font-weight:300;cursor:pointer}
+.hint-badge{font-size:10px;font-weight:700;padding:2px 7px;border-radius:10px;letter-spacing:0.04em;flex-shrink:0}
+.hint-badge.must{background:#FDF0EE;color:var(--red)}
+.hint-badge.rec{background:var(--orange-bg);color:var(--orange)}
+.hint-badge.opt{background:var(--green-bg);color:var(--green)}
+@media(max-width:640px){.two-col{grid-template-columns:1fr}.form-row{grid-template-columns:1fr}.score-panel{flex-direction:column}main{padding:1.5rem 1rem}.page-tab{padding:12px 14px;font-size:13px}}
+</style>
+</head>
+<body>
+
+<nav>
+  <div style="display:flex;align-items:center">
+    <div class="logo">LexAI</div>
+    <span class="logo-sub">Jogi Elemző</span>
+  </div>
+  <div style="display:flex;align-items:center;gap:12px">
+    <div id="user-menu" style="display:none;align-items:center;gap:10px">
+      <div id="user-firm" style="font-size:12px;color:rgba(255,255,255,0.5);max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></div>
+      <button onclick="showProfile()" style="padding:6px 12px;background:rgba(255,255,255,0.08);color:rgba(255,255,255,0.7);border:1px solid rgba(255,255,255,0.15);border-radius:3px;font-size:12px;cursor:pointer;font-family:inherit">⚙ Beállítások</button>
+      <button onclick="doLogout()" style="padding:6px 12px;background:transparent;color:rgba(255,255,255,0.4);border:1px solid rgba(255,255,255,0.1);border-radius:3px;font-size:12px;cursor:pointer;font-family:inherit">Kilépés</button>
+    </div>
+    <a href="index.html" class="back-btn">← Főoldal</a>
+  </div>
+</nav>
+
+<!-- ONBOARDING MODAL -->
+<div id="onboarding-modal" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(8,17,30,0.92);z-index:99999;align-items:center;justify-content:center">
+  <div style="background:white;border-radius:10px;padding:2.5rem;max-width:520px;width:92%;box-shadow:0 32px 100px rgba(0,0,0,0.5);position:relative">
+    <div style="text-align:center;margin-bottom:1.75rem">
+      <div style="font-family:Cormorant,serif;font-size:13px;font-weight:600;color:#C9A84C;letter-spacing:0.2em;text-transform:uppercase;margin-bottom:8px">Üdvözöljük a LexAI-ban!</div>
+      <div style="font-family:Cormorant,serif;font-size:26px;font-weight:600;color:#08111E;margin-bottom:8px">Iroda / Cég adatai</div>
+      <div style="font-size:13px;color:#9AA3B0;font-weight:300;line-height:1.6">Töltse ki az adatokat egyszer – ezzel automatikusan előtöltjük a szerződéseket.<br>Bármikor módosítható a Beállítások menüben.</div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem">
+      <div style="grid-column:1/-1">
+        <label style="font-size:11px;font-weight:600;color:#6B7888;text-transform:uppercase;letter-spacing:0.04em;display:block;margin-bottom:5px">Iroda / Cég neve *</label>
+        <input id="ob-name" type="text" placeholder="pl. Kovács és Társai Ügyvédi Iroda" style="width:100%;padding:10px 12px;border:1px solid #DDD8CC;border-radius:4px;font-size:14px;font-family:inherit;background:#FAFAF7">
+      </div>
+      <div>
+        <label style="font-size:11px;font-weight:600;color:#6B7888;text-transform:uppercase;letter-spacing:0.04em;display:block;margin-bottom:5px">Adószám</label>
+        <input id="ob-tax" type="text" placeholder="12345678-2-41" style="width:100%;padding:10px 12px;border:1px solid #DDD8CC;border-radius:4px;font-size:14px;font-family:inherit;background:#FAFAF7">
+      </div>
+      <div>
+        <label style="font-size:11px;font-weight:600;color:#6B7888;text-transform:uppercase;letter-spacing:0.04em;display:block;margin-bottom:5px">Ügyvéd / Kapcsolattartó neve</label>
+        <input id="ob-lawyer" type="text" placeholder="pl. Dr. Kovács Péter" style="width:100%;padding:10px 12px;border:1px solid #DDD8CC;border-radius:4px;font-size:14px;font-family:inherit;background:#FAFAF7">
+      </div>
+      <div>
+        <label style="font-size:11px;font-weight:600;color:#6B7888;text-transform:uppercase;letter-spacing:0.04em;display:block;margin-bottom:5px">Telefon</label>
+        <input id="ob-phone" type="text" placeholder="+36 1 234 5678" style="width:100%;padding:10px 12px;border:1px solid #DDD8CC;border-radius:4px;font-size:14px;font-family:inherit;background:#FAFAF7">
+      </div>
+      <div style="grid-column:1/-1">
+        <label style="font-size:11px;font-weight:600;color:#6B7888;text-transform:uppercase;letter-spacing:0.04em;display:block;margin-bottom:5px">Székhely / Cím</label>
+        <input id="ob-addr" type="text" placeholder="pl. 1051 Budapest, Vörösmarty tér 1." style="width:100%;padding:10px 12px;border:1px solid #DDD8CC;border-radius:4px;font-size:14px;font-family:inherit;background:#FAFAF7">
+      </div>
+      <div style="grid-column:1/-1">
+        <label style="font-size:11px;font-weight:600;color:#6B7888;text-transform:uppercase;letter-spacing:0.04em;display:block;margin-bottom:5px">Email</label>
+        <input id="ob-email" type="email" placeholder="iroda@example.hu" style="width:100%;padding:10px 12px;border:1px solid #DDD8CC;border-radius:4px;font-size:14px;font-family:inherit;background:#FAFAF7">
+      </div>
+    </div>
+    <div style="display:flex;gap:10px;margin-top:1.25rem">
+      <button onclick="saveOnboarding()" id="ob-save-btn" style="flex:1;padding:13px;background:#08111E;color:#C9A84C;border:none;border-radius:4px;font-size:15px;font-weight:500;cursor:pointer;font-family:inherit;letter-spacing:0.02em">Adatok mentése →</button>
+    </div>
+    <div style="text-align:center;margin-top:10px">
+      <button onclick="skipOnboarding()" style="background:none;border:none;font-size:12px;color:#9AA3B0;cursor:pointer;text-decoration:underline;font-family:inherit">Kihagyom, később töltöm ki</button>
+    </div>
+    <div id="ob-msg" style="display:none;margin-top:10px;padding:8px 12px;border-radius:4px;font-size:13px"></div>
+  </div>
+</div>
+
+<!-- PROFILE MODAL -->
+<div id="profile-modal" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.7);z-index:9999;align-items:center;justify-content:center">
+  <div style="background:white;border-radius:8px;padding:2.5rem;max-width:500px;width:90%;box-shadow:0 24px 80px rgba(0,0,0,0.3)">
+    <div style="font-family:Cormorant,serif;font-size:22px;font-weight:600;color:#08111E;margin-bottom:1.5rem;display:flex;justify-content:space-between;align-items:center">
+      Iroda beállítások
+      <button onclick="closeProfile()" style="background:none;border:none;font-size:20px;cursor:pointer;color:#9AA3B0">×</button>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem">
+      <div style="grid-column:1/-1">
+        <label style="font-size:11px;font-weight:600;color:#6B7888;text-transform:uppercase;letter-spacing:0.04em;display:block;margin-bottom:5px">Iroda / Cég neve</label>
+        <input id="prof-name" type="text" style="width:100%;padding:10px 12px;border:1px solid #DDD8CC;border-radius:4px;font-size:14px;font-family:inherit">
+      </div>
+      <div>
+        <label style="font-size:11px;font-weight:600;color:#6B7888;text-transform:uppercase;letter-spacing:0.04em;display:block;margin-bottom:5px">Adószám</label>
+        <input id="prof-tax" type="text" style="width:100%;padding:10px 12px;border:1px solid #DDD8CC;border-radius:4px;font-size:14px;font-family:inherit">
+      </div>
+      <div>
+        <label style="font-size:11px;font-weight:600;color:#6B7888;text-transform:uppercase;letter-spacing:0.04em;display:block;margin-bottom:5px">Ügyvéd neve</label>
+        <input id="prof-lawyer" type="text" style="width:100%;padding:10px 12px;border:1px solid #DDD8CC;border-radius:4px;font-size:14px;font-family:inherit">
+      </div>
+      <div>
+        <label style="font-size:11px;font-weight:600;color:#6B7888;text-transform:uppercase;letter-spacing:0.04em;display:block;margin-bottom:5px">Telefon</label>
+        <input id="prof-phone" type="text" style="width:100%;padding:10px 12px;border:1px solid #DDD8CC;border-radius:4px;font-size:14px;font-family:inherit">
+      </div>
+      <div style="grid-column:1/-1">
+        <label style="font-size:11px;font-weight:600;color:#6B7888;text-transform:uppercase;letter-spacing:0.04em;display:block;margin-bottom:5px">Cím</label>
+        <input id="prof-addr" type="text" style="width:100%;padding:10px 12px;border:1px solid #DDD8CC;border-radius:4px;font-size:14px;font-family:inherit">
+      </div>
+      <div style="grid-column:1/-1">
+        <label style="font-size:11px;font-weight:600;color:#6B7888;text-transform:uppercase;letter-spacing:0.04em;display:block;margin-bottom:5px">Email</label>
+        <input id="prof-email" type="text" style="width:100%;padding:10px 12px;border:1px solid #DDD8CC;border-radius:4px;font-size:14px;font-family:inherit">
+      </div>
+    </div>
+    <div style="display:flex;gap:10px;margin-top:1rem">
+      <button onclick="saveProfile()" style="padding:11px 24px;background:#08111E;color:#C9A84C;border:none;border-radius:4px;font-size:14px;cursor:pointer;font-family:inherit;font-weight:500">Mentés</button>
+      <button onclick="closeProfile()" style="padding:11px 16px;background:transparent;color:#6B7888;border:1px solid #DDD8CC;border-radius:4px;font-size:13px;cursor:pointer;font-family:inherit">Mégse</button>
+    </div>
+    <div id="prof-msg" style="display:none;margin-top:10px;padding:8px 12px;border-radius:4px;font-size:13px"></div>
+  </div>
+</div>
+
+<main>
+
+  <!-- API kulcs a backenden van - nincs szükség itt megadni -->
+
+  <div class="page-tabs">
+    <button class="page-tab active" onclick="showPage('analyze',this)">Szerződéselemzés</button>
+    <button class="page-tab" onclick="showPage('generate',this)">Szerződésgenerálás</button>
+  </div>
+
+  <!-- ELEMZÉS -->
+  <div class="page active" id="page-analyze">
+    <div class="sec-title">Szerződés elemzése</div>
+    <div class="sec-sub">Töltse fel a dokumentumot – az AI azonosítja a kockázatokat, hiányosságokat és konkrét javításokat javasol</div>
+
+    <div class="card">
+      <div class="card-label">Dokumentum beküldése</div>
+      <div class="inp-switch">
+        <button class="inp-sw-btn active" id="sw-text" onclick="switchInp('text')">Szöveg beillesztése</button>
+        <button class="inp-sw-btn" id="sw-file" onclick="switchInp('file')">Fájl feltöltése</button>
+      </div>
+
+      <div class="inp-panel active" id="inp-text">
+        <textarea id="contract-text" rows="10" placeholder="Illessze be ide a szerződés szövegét – bármilyen hosszúságú dokumentumot elfogad a rendszer..."></textarea>
+        <div class="char-count" id="char-count">0 karakter</div>
+      </div>
+
+      <div class="inp-panel" id="inp-file">
+        <div class="dropzone" id="dropzone"
+          onclick="document.getElementById('file-inp').click()"
+          ondragover="event.preventDefault();this.classList.add('drag')"
+          ondragleave="this.classList.remove('drag')"
+          ondrop="handleDrop(event)">
+          <div class="dz-icon">📎</div>
+          <div class="dz-title">Kattintson vagy húzza ide a dokumentumot</div>
+          <div class="dz-sub">Automatikusan felismeri és beolvassa a fájlt</div>
+          <div class="dz-formats">
+            <span class="dz-fmt">PDF</span>
+            <span class="dz-fmt">DOCX</span>
+            <span class="dz-fmt">DOC</span>
+            <span class="dz-fmt">TXT</span>
+            <span class="dz-fmt">RTF</span>
+          </div>
+          <div class="dz-result" id="dz-result"></div>
+          <div class="prog-wrap" id="prog-wrap">
+            <div class="prog-bar"><div class="prog-fill" id="prog-fill"></div></div>
+            <div class="prog-txt" id="prog-txt">Feldolgozás...</div>
+          </div>
+          <button id="dz-reset" onclick="resetFile(event)" style="display:none;margin-top:10px;padding:5px 14px;background:transparent;border:1px solid var(--border2);border-radius:3px;font-size:11px;color:var(--text2);cursor:pointer;font-family:'DM Sans',sans-serif">Másik fájl feltöltése</button>
+        </div>
+        <input type="file" id="file-inp" accept=".pdf,.txt,.doc,.docx,.rtf,.odt" style="display:none" onchange="handleFileInput(this)">
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-top:1.25rem;margin-bottom:1rem">
+        <div>
+          <label style="font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:0.04em;display:block;margin-bottom:5px">Szerződés típusa</label>
+          <select class="type-sel" id="contract-type" style="width:100%">
+          <option value="">Automatikus felismerés</option>
+            <option>Vállalkozási szerződés</option>
+            <option>Bérleti szerződés</option>
+            <option>Munkaszerződés</option>
+            <option>Adásvételi szerződés</option>
+            <option>Megbízási szerződés</option>
+            <option>Befektetési szerződés</option>
+            <option>Részvényesi megállapodás</option>
+            <option>Titoktartási szerződés (NDA)</option>
+            <option>Ingatlan adásvételi szerződés</option>
+            <option>Hitelszerződés</option>
+            <option>Egyéb</option>        </select>
+        </div>
+        <div>
+          <label style="font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:0.04em;display:block;margin-bottom:5px">Elemzési mélység</label>
+          <select class="type-sel" id="analyze-depth" style="width:100%">
+            <option value="standard">Standard elemzés</option>
+            <option value="deep">Mélyelemzés (nagy dokumentumhoz)</option>
+            <option value="quick">Gyors áttekintés</option>
+          </select>
+        </div>
+      </div>
+      <div style="margin-bottom:1.25rem">
+        <label style="font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:0.04em;display:block;margin-bottom:8px">Kinek a szempontjából elemezzük?</label>
+        <div style="display:flex;flex-wrap:wrap;gap:8px">
+          <button class="persp-btn active" data-val="kiegyensulyzott, mindket fel szempontjabol" onclick="setPerspective(this)">&#9878; Kiegyens&uacute;lyozott</button>
+          <button class="persp-btn" data-val="az ugyfel, megbizo, vasarlo, berlo, munkavallaló szempontjabol - az o erdekeinek vedelmevel" onclick="setPerspective(this)">&#128100; Az &uuml;gyf&eacute;l szempontj&aacute;b&oacute;l</button>
+          <button class="persp-btn" data-val="az ellenerdeku fel, szolgaltato, elado, berbeado, munkaltato szempontjabol - az o erdekeinek vedelmevel" onclick="setPerspective(this)">&#127970; Az ellenérdek&uacute; f&eacute;l szempontj&aacute;b&oacute;l</button>
+        </div>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-outline" onclick="loadSample()" style="font-size:13px">Minta</button>
+        <button class="btn btn-primary" id="analyze-btn" onclick="doAnalyze()" style="margin-left:auto">Mélyelemzés →</button>
+      </div>
+      <div class="chunk-info" id="chunk-info">ℹ Nagy dokumentum – fejezetek szerint elemzés...</div>
+      <div class="err-box" id="analyze-err"></div>
+    </div>
+
+    <div class="loading" id="analyze-loading">
+      <div class="spinner"></div>
+      <div class="load-title" id="load-title">A dokumentum elemzése folyamatban</div>
+      <div class="load-sub" id="load-sub">Kérem várjon – ez 15-30 másodpercet vehet igénybe</div>
+      <div class="load-prog-wrap">
+        <div class="prog-bar"><div class="prog-fill" id="analyze-prog"></div></div>
+      </div>
+      <button class="btn btn-red" onclick="doStop()">⏹ Megszakítás</button>
+    </div>
+
+    <div class="results" id="analyze-results">
+      <div class="results-hdr">
+        <div class="results-title">Elemzési Jelentés</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn btn-green" onclick="printAnalysis()">🖨 Nyomtatás / PDF</button>
+          <button class="btn btn-outline" onclick="doReset()" style="font-size:13px">Új elemzés</button>
+        </div>
+      </div>
+
+      <div id="score-container"></div>
+
+      <div class="card">
+        <div class="card-label">Konkrét javítási javaslatok</div>
+        <div id="fixes-container"></div>
+      </div>
+
+      <div class="regen-panel">
+        <div class="regen-title">Szerződés javítása és újragenerálása</div>
+        <div class="regen-sub">Az AI a feltárt hibák alapján újraírja a teljes szerződést. Megadhat további szempontokat is.</div>
+        <div class="card-label">AI által javasolt kiegészítések:</div>
+        <div class="chips" id="regen-chips"></div>
+        <div style="margin-bottom:1rem">
+          <label style="font-size:11px;font-weight:600;color:var(--text2);display:block;margin-bottom:5px;text-transform:uppercase;letter-spacing:0.04em">További szempontok</label>
+          <textarea id="regen-extra" rows="2" placeholder="pl. erősebb kötbér kikötés, titoktartási záradék, 30 napos felmondási idő..."></textarea>
+        </div>
+        <div style="margin-bottom:1.25rem">
+          <label style="font-size:11px;font-weight:600;color:var(--text2);display:block;margin-bottom:5px;text-transform:uppercase;letter-spacing:0.04em">Kinek az érdekét védje?</label>
+          <select class="type-sel" id="regen-favor">
+            <option value="mindkét fél">Kiegyensúlyozott (mindkét fél)</option>
+            <option value="a megrendelő">Megrendelő / Vevő</option>
+            <option value="a vállalkozó">Vállalkozó / Eladó</option>
+            <option value="a bérlő">Bérlő</option>
+            <option value="a bérbeadó">Bérbeadó</option>
+            <option value="a munkáltató">Munkáltató</option>
+            <option value="a munkavállaló">Munkavállaló</option>
+            <option value="a befektető">Befektető</option>
+            <option value="az alapító / startup">Alapító / Startup</option>
+            <option value="a hitelező">Hitelező</option>
+          </select>
+        </div>
+        <button class="btn btn-primary" id="regen-btn" onclick="doRegen()">Javított szerződés generálása →</button>
+      </div>
+
+      <div class="two-col">
+        <div class="card" style="margin-bottom:0">
+          <div class="card-label">Azonosított kockázatok</div>
+          <div id="risks-container"></div>
+        </div>
+        <div>
+          <div class="card" style="margin-bottom:1rem">
+            <div class="card-label">Hiányosságok</div>
+            <div id="missing-container"></div>
+          </div>
+          <div class="card" style="margin-bottom:0">
+            <div class="card-label">Pozitívumok</div>
+            <div id="pos-container"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:1.5rem">
+        <div class="card-label">Összefoglalás</div>
+        <div id="summary-container"></div>
+      </div>
+
+      <div id="regen-result" style="display:none">
+        <div class="card">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;flex-wrap:wrap;gap:8px">
+            <div style="font-family:'Cormorant',serif;font-size:20px;font-weight:600;color:var(--ink)">Javított szerződés</div>
+            <div style="display:flex;gap:8px">
+              <button class="btn btn-green" onclick="printContract(_regen)">🖨 PDF</button>
+              <button class="btn btn-outline" onclick="analyzeRegen()" style="font-size:13px">Elemzés →</button>
+            </div>
+          </div>
+          <div class="contract-out" id="regen-out"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- GENERÁLÁS -->
+  <div class="page" id="page-generate">
+    <div class="sec-title">Szerződés generálása</div>
+    <div class="sec-sub">Adja meg az alapadatokat – az AI teljes, jogilag korrekt szerződést készít PTK alapján</div>
+
+    <div class="card">
+      <div class="card-label">Szerződés adatai</div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Szerződés típusa *</label>
+          <select id="gen-type">
+            <option value="">Válasszon típust...</option>
+            <option>Vállalkozási szerződés</option>
+            <option>Bérleti szerződés</option>
+            <option>Munkaszerződés</option>
+            <option>Adásvételi szerződés</option>
+            <option>Megbízási szerződés</option>
+            <option>Kölcsönszerződés</option>
+            <option>Szállítási szerződés</option>
+            <option>Franchise szerződés</option>
+            <option>Licencia szerződés</option>
+            <option>Titoktartási szerződés (NDA)</option>
+            <option>Részvényesi megállapodás</option>
+            <option>Ingatlan adásvételi szerződés</option>
+            <option>Hitelszerződés</option>
+            <option>Alvállalkozói szerződés</option>
+            <option>Ügynöki szerződés</option>
+            <option>Egyéb</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Kinek az érdekét védje?</label>
+          <select id="gen-favor">
+            <option value="mindkét fél">Kiegyensúlyozott (mindkét fél)</option>
+            <option value="a megrendelő / vevő">Megrendelő / Vevő</option>
+            <option value="a vállalkozó / eladó">Vállalkozó / Eladó</option>
+            <option value="a bérlő">Bérlő</option>
+            <option value="a bérbeadó">Bérbeadó</option>
+            <option value="a munkáltató">Munkáltató</option>
+            <option value="a munkavállaló">Munkavállaló</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>1. Fél neve és adatai</label>
+          <input type="text" id="gen-p1" placeholder="pl. Kovács Kft., 1051 Budapest, adószám...">
+        </div>
+        <div class="form-group">
+          <label>2. Fél neve és adatai</label>
+          <input type="text" id="gen-p2" placeholder="pl. Nagy János, 1051 Budapest...">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Összeg / Ellenérték</label>
+          <input type="text" id="gen-amount" placeholder="pl. 500.000 Ft + ÁFA">
+        </div>
+        <div class="form-group">
+          <label>Határidő / Időtartam</label>
+          <input type="text" id="gen-deadline" placeholder="pl. 2025. december 31.">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Részletesség</label>
+          <select id="gen-level">
+            <option value="standard (5-8 oldalas)">Standard (5-8 oldal)</option>
+            <option value="részletes (10-15 oldalas)">Részletes (10-15 oldal)</option>
+            <option value="rövid és tömör (2-3 oldalas)">Rövid (2-3 oldal)</option>
+            <option value="komplex, vállalati szintű (15+ oldalas)">Komplex / Vállalati (15+ oldal)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Aláírás dátuma</label>
+          <input type="text" id="gen-date" placeholder="pl. 2025. május 1.">
+        </div>
+      </div>
+      <div class="form-group" style="margin-bottom:1rem">
+        <label>A szerződés tárgya és főbb feltételek *</label>
+        <textarea id="gen-details" rows="4" placeholder="Írja le részletesen mit tartalmazzon a szerződés..."></textarea>
+      </div>
+      <div class="form-group" style="margin-bottom:1.25rem">
+        <label>Különleges kikötések (opcionális)</label>
+        <textarea id="gen-special" rows="2" placeholder="pl. kötbér mértéke, titoktartás, versenytilalom, felmondási feltételek..."></textarea>
+      </div>
+      <div style="display:flex;gap:10px;margin-bottom:1rem;flex-wrap:wrap">
+        <button class="btn btn-outline" onclick="getSmartHints()" style="font-size:13px">Mit kell belerakni? (AI útmutató)</button>
+        <button class="btn btn-outline" id="sug-btn" onclick="getSuggestions()" style="font-size:13px">Egyéb javaslatok</button>
+      </div>
+      <div id="smart-hints-panel" style="display:none;margin-bottom:1rem">
+        <div class="hint-box">
+          <div style="font-size:13px;font-weight:600;color:var(--blue);margin-bottom:0.75rem">AI útmutató – ajánlott kikötések:</div>
+          <div id="smart-hints-list"></div>
+          <div style="display:flex;gap:8px;margin-top:1rem">
+            <button class="btn btn-outline" onclick="addSmartHints()" style="font-size:12px">Kijelöltek hozzáadása</button>
+            <button onclick="document.getElementById('smart-hints-panel').style.display='none'" style="background:none;border:none;font-size:12px;color:var(--text3);cursor:pointer;font-family:inherit">Bezárás</button>
+          </div>
+        </div>
+      </div>
+      <div id="sug-panel" style="display:none">
+        <div class="sug-box">
+          <div style="font-size:13px;font-weight:500;color:var(--ink);margin-bottom:0.75rem">Az AI az alábbiak belefoglalását javasolja:</div>
+          <div id="sug-list"></div>
+          <button class="btn btn-outline" onclick="addSuggestions()" style="margin-top:0.75rem;font-size:12px">Kijelöltek hozzáadása →</button>
+        </div>
+      </div>
+      <div class="btn-row" style="margin-top:1.5rem">
+        <button class="btn btn-primary" id="gen-btn" onclick="doGenerate()">Szerződés generálása →</button>
+      </div>
+      <div class="err-box" id="gen-err"></div>
+    </div>
+
+    <div class="loading" id="gen-loading">
+      <div class="spinner"></div>
+      <div class="load-title">A szerződés készítése folyamatban</div>
+      <div class="load-sub">Jogilag korrekt dokumentum összeállítása PTK alapján...</div>
+    </div>
+
+    <div id="gen-result" style="display:none">
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;flex-wrap:wrap;gap:8px">
+          <div style="font-family:'Cormorant',serif;font-size:20px;font-weight:600;color:var(--ink)">Elkészült szerződés</div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <button class="btn btn-green" onclick="printContract(_gen)">🖨 Nyomtatás / PDF</button>
+            <button class="btn btn-outline" onclick="analyzeGenerated()" style="font-size:13px">Elemzés →</button>
+          </div>
+        </div>
+        <div class="contract-out" id="gen-out"></div>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<script>
+// PDF.js
+if(typeof pdfjsLib!=='undefined'){
+  pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+}
+
+var _key='',_abort=false,_inp='text',_uploaded='',_last=null,_regen='',_gen='';
+
+// SUPABASE
+var SURL='https://iklhmuroimjbfkswpjvi.supabase.co';
+var SKEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlrbGhtdXJvaW1qYmZrc3dwanZpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc2ODA4MTIsImV4cCI6MjA5MzI1NjgxMn0.rjP1VW5_QPeHyeE1vmjE_HxT76NBpx_RF_HwWt6Sv6A';
+var _profile={};
+
+function getSbToken(){return localStorage.getItem('sb_token');}
+
+function doLogout(){
+  localStorage.removeItem('sb_token');
+  localStorage.removeItem('sb_user');
+  localStorage.removeItem('sb_profile');
+  window.location.href='auth.html';
+}
+
+async function loadProfile(){
+  var tok=getSbToken();
+  var user=localStorage.getItem('sb_user');
+  if(!tok||!user){
+    var cached=localStorage.getItem('sb_profile');
+    if(cached){_profile=JSON.parse(cached);updateUserMenu();}
+    return;
+  }
+  // Először betöltjük a cache-ből (gyors)
+  var cached=localStorage.getItem('sb_profile');
+  if(cached){_profile=JSON.parse(cached);updateUserMenu();}
+  // Majd frissítjük a szerverről (háttérben)
+  try{
+    var uid=JSON.parse(user).id;
+    var r=await fetch(SURL+'/rest/v1/profiles?id=eq.'+uid,{
+      headers:{'apikey':SKEY,'Authorization':'Bearer '+tok}
+    });
+    if(r.status===401){
+      // Token lejárt - cache-t használjuk, nem dobjuk ki a felhasználót
+      if(!cached)updateUserMenu();
+      return;
+    }
+    var data=await r.json();
+    if(data&&data[0]){
+      _profile=data[0];
+      localStorage.setItem('sb_profile',JSON.stringify(_profile));
+      updateUserMenu();
+      if(!_profile.onboarding_done&&!localStorage.getItem('ob_skipped')){showOnboarding();}
+    } else {
+      updateUserMenu();
+      if(!cached&&!localStorage.getItem('ob_skipped')){showOnboarding();}
+    }
+  }catch(e){
+    // Hálózati hiba - cache-t használjuk, folytatjuk
+    if(!cached)updateUserMenu();
+  }
+}
+
+function updateUserMenu(){
+  var menu=document.getElementById('user-menu');
+  if(getSbToken()){
+    menu.style.display='flex';
+    var firm=_profile.firm_name||localStorage.getItem('sb_user')&&JSON.parse(localStorage.getItem('sb_user')).email||'';
+    document.getElementById('user-firm').textContent=firm;
+  }
+}
+
+function showProfile(){
+  document.getElementById('prof-name').value=_profile.firm_name||'';
+  document.getElementById('prof-tax').value=_profile.tax_number||'';
+  document.getElementById('prof-lawyer').value=_profile.lawyer_name||'';
+  document.getElementById('prof-phone').value=_profile.phone||'';
+  document.getElementById('prof-addr').value=_profile.address||'';
+  document.getElementById('prof-email').value=_profile.contact_email||'';
+  document.getElementById('profile-modal').style.display='flex';
+}
+
+function closeProfile(){
+  document.getElementById('profile-modal').style.display='none';
+}
+
+async function saveProfile(){
+  var tok=getSbToken();
+  var user=localStorage.getItem('sb_user');
+  if(!tok||!user)return;
+  var uid=JSON.parse(user).id;
+  var data={
+    id:uid,
+    firm_name:document.getElementById('prof-name').value.trim(),
+    tax_number:document.getElementById('prof-tax').value.trim(),
+    lawyer_name:document.getElementById('prof-lawyer').value.trim(),
+    phone:document.getElementById('prof-phone').value.trim(),
+    address:document.getElementById('prof-addr').value.trim(),
+    contact_email:document.getElementById('prof-email').value.trim()
+  };
+  try{
+    var r=await fetch(SURL+'/rest/v1/profiles?id=eq.'+uid,{
+      method:'PATCH',
+      headers:{'Content-Type':'application/json','apikey':SKEY,'Authorization':'Bearer '+tok,'Prefer':'return=minimal'},
+      body:JSON.stringify(data)
+    });
+    if(!r.ok){
+      // Try insert if patch fails
+      await fetch(SURL+'/rest/v1/profiles',{
+        method:'POST',
+        headers:{'Content-Type':'application/json','apikey':SKEY,'Authorization':'Bearer '+tok,'Prefer':'return=minimal'},
+        body:JSON.stringify(data)
+      });
+    }
+    _profile=data;
+    localStorage.setItem('sb_profile',JSON.stringify(_profile));
+    updateUserMenu();
+    var msg=document.getElementById('prof-msg');
+    msg.textContent='✅ Mentve!';msg.style.display='block';msg.style.background='#EDF7F2';msg.style.color='#166048';msg.style.border='1px solid #A8DFC0';
+    setTimeout(function(){closeProfile();},1200);
+  }catch(e){
+    var msg=document.getElementById('prof-msg');
+    msg.textContent='Hiba: '+e.message;msg.style.display='block';msg.style.background='#FDF0EE';msg.style.color='#A8281C';
+  }
+}
+
+// ONBOARDING
+function showOnboarding(){
+  var ob=document.getElementById('onboarding-modal');
+  // Pre-fill if we have some data already
+  if(_profile.firm_name)document.getElementById('ob-name').value=_profile.firm_name;
+  if(_profile.tax_number)document.getElementById('ob-tax').value=_profile.tax_number;
+  if(_profile.lawyer_name)document.getElementById('ob-lawyer').value=_profile.lawyer_name;
+  if(_profile.phone)document.getElementById('ob-phone').value=_profile.phone;
+  if(_profile.address)document.getElementById('ob-addr').value=_profile.address;
+  if(_profile.contact_email)document.getElementById('ob-email').value=_profile.contact_email;
+  ob.style.display='flex';
+}
+
+function skipOnboarding(){
+  document.getElementById('onboarding-modal').style.display='none';
+  // Mark as done so we don't show again this session
+  localStorage.setItem('ob_skipped','1');
+}
+
+async function saveOnboarding(){
+  var tok=getSbToken();
+  var user=localStorage.getItem('sb_user');
+  if(!tok||!user){skipOnboarding();return;}
+  var uid=JSON.parse(user).id;
+  var name=document.getElementById('ob-name').value.trim();
+  if(!name){
+    var msg=document.getElementById('ob-msg');
+    msg.textContent='Az iroda / cég neve kötelező!';msg.style.display='block';
+    msg.style.background='#FDF0EE';msg.style.color='#A8281C';msg.style.border='1px solid #F0C4BE';
+    return;
+  }
+  var btn=document.getElementById('ob-save-btn');
+  btn.disabled=true;btn.textContent='Mentés...';
+  var data={
+    id:uid,
+    firm_name:name,
+    tax_number:document.getElementById('ob-tax').value.trim(),
+    lawyer_name:document.getElementById('ob-lawyer').value.trim(),
+    phone:document.getElementById('ob-phone').value.trim(),
+    address:document.getElementById('ob-addr').value.trim(),
+    contact_email:document.getElementById('ob-email').value.trim(),
+    onboarding_done:true
+  };
+  try{
+    // Try PATCH first, then INSERT
+    var r=await fetch(SURL+'/rest/v1/profiles?id=eq.'+uid,{
+      method:'PATCH',
+      headers:{'Content-Type':'application/json','apikey':SKEY,'Authorization':'Bearer '+tok,'Prefer':'return=minimal'},
+      body:JSON.stringify(data)
+    });
+    if(!r.ok||r.status===404){
+      await fetch(SURL+'/rest/v1/profiles',{
+        method:'POST',
+        headers:{'Content-Type':'application/json','apikey':SKEY,'Authorization':'Bearer '+tok,'Prefer':'return=minimal'},
+        body:JSON.stringify(data)
+      });
+    }
+    _profile=data;
+    localStorage.setItem('sb_profile',JSON.stringify(_profile));
+    updateUserMenu();
+    prefillContractForm();
+    var msg=document.getElementById('ob-msg');
+    msg.textContent='✅ Adatok mentve!';msg.style.display='block';
+    msg.style.background='#EDF7F2';msg.style.color='#166048';msg.style.border='1px solid #A8DFC0';
+    setTimeout(function(){document.getElementById('onboarding-modal').style.display='none';},1000);
+  }catch(e){
+    var msg=document.getElementById('ob-msg');
+    msg.textContent='Hiba: '+e.message;msg.style.display='block';
+    msg.style.background='#FDF0EE';msg.style.color='#A8281C';msg.style.border='1px solid #F0C4BE';
+  }
+  btn.disabled=false;btn.textContent='Adatok mentése →';
+}
+
+// Pre-fill contract form with profile data
+function prefillContractForm(){
+  if(!_profile||!_profile.firm_name)return;
+  var p1=document.getElementById('gen-p1');
+  if(!p1)return;
+  var parts=[];
+  if(_profile.firm_name)parts.push(_profile.firm_name);
+  if(_profile.address)parts.push(_profile.address);
+  if(_profile.tax_number)parts.push('adószám: '+_profile.tax_number);
+  if(parts.length>0)p1.value=parts.join(', ');
+  // Also set placeholder
+  p1.placeholder=parts.length>0?parts.join(', '):'pl. Kovács Kft., 1051 Budapest, adószám...';
+}
+
+// KEY
+function saveKey(){
+  var k=document.getElementById('api-inp').value.trim();
+  if(!k||k.length<10){alert('Add meg az API kulcsodat!');return;}
+  _key=k;
+  try{localStorage.setItem('_lk',k);}catch(e){}
+  document.getElementById('api-bar').classList.add('hidden');
+  document.getElementById('api-ok').style.display='flex';
+}
+function resetKey(){
+  _key='';
+  try{localStorage.removeItem('_lk');}catch(e){}
+  document.getElementById('api-bar').classList.remove('hidden');
+  document.getElementById('api-ok').style.display='none';
+  document.getElementById('api-inp').value='';
+}
+function getKey(){
+  if(_key)return _key;
+  try{var s=localStorage.getItem('_lk');if(s){_key=s;return s;}}catch(e){}
+  return null;
+}
+
+function showPage(name,el){
+  document.querySelectorAll('.page').forEach(function(p){p.classList.remove('active');});
+  document.querySelectorAll('.page-tab').forEach(function(t){t.classList.remove('active');});
+  document.getElementById('page-'+name).classList.add('active');
+  el.classList.add('active');
+}
+function switchInp(name){
+  _inp=name;
+  ['text','file'].forEach(function(n){
+    document.getElementById('inp-'+n).classList.toggle('active',n===name);
+    document.getElementById('sw-'+n).classList.toggle('active',n===name);
+  });
+}
+
+// FILE HANDLING
+function handleDrop(e){
+  e.preventDefault();
+  document.getElementById('dropzone').classList.remove('drag');
+  if(e.dataTransfer.files[0])processFile(e.dataTransfer.files[0]);
+}
+function handleFileInput(inp){if(inp.files[0])processFile(inp.files[0]);}
+function resetFile(e){
+  if(e)e.stopPropagation();
+  _uploaded='';
+  var dz=document.getElementById('dropzone');
+  dz.classList.remove('done','drag');
+  document.getElementById('dz-result').style.display='none';
+  document.getElementById('prog-wrap').style.display='none';
+  document.getElementById('dz-reset').style.display='none';
+  document.getElementById('file-inp').value='';
+}
+
+function showDzResult(text,isError){
+  var el=document.getElementById('dz-result');
+  el.textContent=text;el.style.display='block';
+  el.style.color=isError?'var(--red)':'var(--green)';
+  document.getElementById('dz-reset').style.display='inline-block';
+  if(!isError)document.getElementById('dropzone').classList.add('done');
+}
+
+async function processFile(file){
+  var pw=document.getElementById('prog-wrap');
+  var pf=document.getElementById('prog-fill');
+  var pt=document.getElementById('prog-txt');
+  document.getElementById('dz-result').style.display='none';
+  document.getElementById('dropzone').classList.remove('done');
+  document.getElementById('dz-reset').style.display='none';
+  pw.style.display='block';
+  pf.style.width='5%';
+  var name=file.name.toLowerCase();
+  try{
+    if(name.endsWith('.pdf')){
+      if(typeof pdfjsLib==='undefined')throw new Error('PDF olvasó nem töltődött be. Frissítse az oldalt!');
+      pt.textContent='PDF beolvasása...';
+      var ab=await file.arrayBuffer();
+      pf.style.width='20%';
+      var pdf=await pdfjsLib.getDocument({
+        data:ab,
+        cMapUrl:'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/cmaps/',
+        cMapPacked:true,
+        standardFontDataUrl:'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/standard_fonts/'
+      }).promise;
+      var pages=pdf.numPages;
+      var allText=[];
+      for(var i=1;i<=pages;i++){
+        pt.textContent=(i)+'/'+pages+'. oldal...';
+        var pg=await pdf.getPage(i);
+        var tc=await pg.getTextContent({includeMarkedContent:false});
+        var lastY=null,line='',lines=[];
+        tc.items.forEach(function(it){
+          if(!it.str)return;
+          if(lastY!==null&&Math.abs(it.transform[5]-lastY)>3){
+            if(line.trim())lines.push(line.trim());
+            line='';
+          }
+          line+=it.str+(it.hasEOL?' ':'');
+          lastY=it.transform[5];
+        });
+        if(line.trim())lines.push(line.trim());
+        allText.push(lines.join('\n'));
+        pf.style.width=(20+Math.round((i/pages)*75))+'%';
+      }
+      _uploaded=allText.join('\n\n');
+      if(!_uploaded||_uploaded.trim().length<30)
+        throw new Error('A PDF nem tartalmaz olvasható szöveget (valószínűleg szkennelt). Kérjük OCR-rel alakítsa szöveggé, vagy másolja be a szöveget kézzel.');
+      pf.style.width='100%';
+      setTimeout(function(){
+        pw.style.display='none';
+        showDzResult('✅ '+file.name+' – '+pages+' oldal, '+_uploaded.length+' karakter beolvasva',false);
+      },300);
+
+    } else if(name.endsWith('.docx')){
+      pt.textContent='Word dokumentum beolvasása...';
+      pf.style.width='20%';
+      if(typeof JSZip==='undefined')throw new Error('Word olvasó nem töltődött be. Frissítse az oldalt!');
+      var ab2=await file.arrayBuffer();
+      pf.style.width='40%';
+      var zip=await JSZip.loadAsync(ab2);
+      pf.style.width='60%';
+      var xmlFile=zip.file('word/document.xml');
+      if(!xmlFile)throw new Error('Érvénytelen Word dokumentum. Győződjön meg róla hogy .docx formátumú.');
+      var xml=await xmlFile.async('string');
+      pf.style.width='80%';
+      // Extract text from XML properly
+      var text='';
+      var parser=new DOMParser();
+      var doc=parser.parseFromString(xml,'text/xml');
+      var paragraphs=doc.getElementsByTagName('w:p');
+      for(var p=0;p<paragraphs.length;p++){
+        var runs=paragraphs[p].getElementsByTagName('w:t');
+        var pText='';
+        for(var r=0;r<runs.length;r++){pText+=runs[r].textContent;}
+        if(pText.trim())text+=pText.trim()+'\n';
+        else text+='\n';
+      }
+      _uploaded=text.trim();
+      if(!_uploaded||_uploaded.length<30)throw new Error('A Word dokumentum üresnek tűnik.');
+      pf.style.width='100%';
+      setTimeout(function(){
+        pw.style.display='none';
+        showDzResult('✅ '+file.name+' – '+_uploaded.length+' karakter beolvasva',false);
+      },300);
+
+    } else if(name.endsWith('.doc')){
+      // .doc binary - show paste UI instead
+      pw.style.display='none';
+      document.getElementById('dropzone').classList.remove('done');
+      // Show paste modal
+      var modal=document.createElement('div');
+      modal.style.cssText='position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.7);z-index:9999;display:flex;align-items:center;justify-content:center';
+      modal.innerHTML='<div style="background:white;border-radius:8px;padding:2rem;max-width:560px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,0.3)">'+
+        '<div style="font-size:18px;font-weight:600;color:#0A0F1A;margin-bottom:8px">⚠️ Régi .doc formátum</div>'+
+        '<div style="font-size:13px;color:#6B7888;margin-bottom:1.5rem;line-height:1.6">A .doc fájl böngészőből nem olvasható közvetlenül.<br><strong>Legegyszerűbb megoldás:</strong> Nyissa meg Word-ben, jelölje ki az összes szöveget (Ctrl+A), másolja (Ctrl+C), majd illessze be az alábbi mezőbe.</div>'+
+        '<textarea id="doc-paste-area" style="width:100%;min-height:160px;border:1px solid #DDD8CC;border-radius:4px;padding:12px;font-size:13px;font-family:inherit;resize:vertical;margin-bottom:1rem" placeholder="Illessze be ide a .doc fájl szövegét..."></textarea>'+
+        '<div style="display:flex;gap:10px;flex-wrap:wrap">'+
+        '<button id="doc-paste-ok" style="padding:10px 20px;background:#0A0F1A;color:#D4AF5A;border:none;border-radius:4px;font-size:14px;cursor:pointer;font-weight:500">Beillesztés és elemzés</button>'+
+        '<button id="doc-paste-cancel" style="padding:10px 16px;background:transparent;color:#6B7888;border:1px solid #DDD8CC;border-radius:4px;font-size:13px;cursor:pointer">Mégse</button>'+
+        '<div style="font-size:11px;color:#9AA3B0;margin-top:8px;width:100%">Vagy: mentse el .docx vagy PDF formátumban és töltse fel újra</div>'+
+        '</div></div>';
+      document.body.appendChild(modal);
+      document.getElementById('doc-paste-cancel').onclick=function(){document.body.removeChild(modal);};
+      document.getElementById('doc-paste-ok').onclick=function(){
+        var txt=document.getElementById('doc-paste-area').value.trim();
+        if(!txt){alert('Kérjük illessze be a szöveget!');return;}
+        _uploaded=txt;
+        document.body.removeChild(modal);
+        // Switch to text input and fill it
+        switchInp('text');
+        document.getElementById('contract-text').value=txt;
+        document.getElementById('char-count').textContent=txt.length+' karakter';
+        showDzResult('✅ Szöveg beillesztve – '+txt.length+' karakter',false);
+      };
+
+    } else if(name.endsWith('.rtf')){
+      pt.textContent='RTF fájl beolvasása...';
+      pf.style.width='50%';
+      var reader2=new FileReader();
+      await new Promise(function(res){
+        reader2.onload=function(ev){
+          var raw=ev.target.result;
+          // Strip RTF control codes
+          var text=raw.replace(/\{\\[^{}]+\}/g,'').replace(/\\[a-z]+\d* ?/g,'').replace(/[{}\\]/g,'').replace(/\r\n|\r|\n/g,'\n').replace(/ {2,}/g,' ').trim();
+          _uploaded=text;res();
+        };
+        reader2.readAsText(file,'utf-8');
+      });
+      pf.style.width='100%';
+      if(!_uploaded||_uploaded.length<30)throw new Error('Az RTF fájl nem olvasható.');
+      setTimeout(function(){
+        pw.style.display='none';
+        showDzResult('✅ '+file.name+' – '+_uploaded.length+' karakter beolvasva',false);
+      },300);
+
+    } else {
+      // Plain text / ODT / other
+      pt.textContent='Fájl beolvasása...';
+      pf.style.width='50%';
+      var reader3=new FileReader();
+      await new Promise(function(res){
+        reader3.onload=function(ev){_uploaded=ev.target.result;res();};
+        reader3.readAsText(file,'UTF-8');
+      });
+      // If ODT (XML), strip tags
+      if(name.endsWith('.odt')){
+        _uploaded=_uploaded.replace(/<[^>]+>/g,' ').replace(/ {2,}/g,' ').replace(/\n{3,}/g,'\n\n').trim();
+      }
+      pf.style.width='100%';
+      if(!_uploaded||_uploaded.length<30)throw new Error('A fájl üresnek tűnik vagy nem olvasható.');
+      setTimeout(function(){
+        pw.style.display='none';
+        showDzResult('✅ '+file.name+' – '+_uploaded.length+' karakter beolvasva',false);
+      },300);
+    }
+  } catch(err){
+    pw.style.display='none';
+    showDzResult('❌ '+err.message,true);
+  }
+}
+
+// API
+// Backend API hívás
+var API_BASE='/api';
+
+async function callBackend(endpoint, data){
+  var controller=new AbortController();
+  var timeout=setTimeout(function(){controller.abort();},120000); // 2 perc
+  try{
+    var r=await fetch(API_BASE+'/'+endpoint,{
+      method:'POST',
+      signal:controller.signal,
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify(data)
+    });
+    clearTimeout(timeout);
+    if(!r.ok){
+      var e=await r.json().catch(function(){return {error:'Szerverhiba'};});
+      throw new Error(e.error||'Szerverhiba: '+r.status);
+    }
+    return await r.json();
+  }catch(e){
+    clearTimeout(timeout);
+    if(e.name==='AbortError')throw new Error('A szerver nem válaszolt 2 percen belül. Próbálja újra!');
+    throw e;
+  }
+}
+
+// Régi callAPI kompatibilitás (doRegen-hez)
+async function callAPI(sys,user,tok){
+  // Közvetlenül a backenden fut - ezt már nem kellene hívni
+  // De a doRegen miatt meghagyjuk
+  var r=await callBackend('analyze',{text:user,type:'',perspective:'kiegyensúlyozott',_sys_override:sys});
+  return JSON.stringify(r);
+}
+
+function getKey(){return true;} // Backend kezeli - mindig OK
+function saveKey(){}
+function resetKey(){}
+
+function parseJ(raw){
+  if(!raw||raw.trim().length===0){
+    return {score:50,verdict:'Üres válasz.',risks:[],fixes:[],suggestions:[],missing:[],positives:[],summary:'Kérjük próbálja újra.'};
+  }
+  var c=raw.replace(/```json\s*/gi,'').replace(/```\s*/g,'').trim();
+  var start=c.indexOf('{');
+  if(start===-1)return {score:50,verdict:'Érvénytelen válasz.',risks:[],fixes:[],suggestions:[],missing:[],positives:[],summary:'Kérjük próbálja újra.'};
+  c=c.substring(start);
+  
+  // Try direct parse first
+  try{
+    var r=JSON.parse(c);
+    if(!r.risks)r.risks=[];
+    if(!r.fixes)r.fixes=[];
+    if(!r.suggestions)r.suggestions=[];
+    if(!r.missing)r.missing=[];
+    if(!r.positives)r.positives=[];
+    if(!r.score)r.score=50;
+    if(!r.verdict)r.verdict='Elemzés elkészült.';
+    if(!r.summary)r.summary='';
+    return r;
+  }catch(e1){}
+  
+  // Try to fix truncated JSON by closing open brackets
+  try{
+    var fixed=c;
+    // Count open/close brackets
+    var opens=0,closes=0,inStr=false,esc=false;
+    for(var i=0;i<fixed.length;i++){
+      var ch=fixed[i];
+      if(esc){esc=false;continue;}
+      if(ch==='\\'){esc=true;continue;}
+      if(ch==='"'){inStr=!inStr;continue;}
+      if(!inStr){
+        if(ch==='{'||ch==='[')opens++;
+        if(ch==='}'||ch===']')closes++;
+      }
+    }
+    // Remove trailing comma if any
+    fixed=fixed.replace(/,\s*$/,'');
+    // Close missing brackets
+    var diff=opens-closes;
+    for(var j=0;j<diff;j++){
+      // Alternate between } and ] based on what's needed
+      fixed+=(fixed.lastIndexOf('[')>fixed.lastIndexOf('{'))?']':'}';
+    }
+    var r2=JSON.parse(fixed);
+    if(!r2.risks)r2.risks=[];
+    if(!r2.fixes)r2.fixes=[];
+    if(!r2.suggestions)r2.suggestions=[];
+    if(!r2.missing)r2.missing=[];
+    if(!r2.positives)r2.positives=[];
+    if(!r2.score)r2.score=50;
+    if(!r2.verdict)r2.verdict='Elemzés elkészült.';
+    if(!r2.summary)r2.summary='';
+    return r2;
+  }catch(e2){
+    // Extract what we can using regex
+    var score=50,verdict='Elemzés elkészült.',summary='';
+    var sm=c.match(/"score"\s*:\s*(\d+)/);
+    if(sm)score=parseInt(sm[1]);
+    var vm=c.match(/"verdict"\s*:\s*"([^"]+)"/);
+    if(vm)verdict=vm[1];
+    var sum=c.match(/"summary"\s*:\s*"([^"]+)"/);
+    if(sum)summary=sum[1];
+    // Extract risks array items
+    var risks=[];
+    var rm=c.match(/"level"\s*:\s*"([^"]+)"[^}]*"title"\s*:\s*"([^"]+)"[^}]*"desc"\s*:\s*"([^"]+)"/g)||[];
+    rm.forEach(function(m){
+      var lm=m.match(/"level"\s*:\s*"([^"]+)"/);
+      var tm=m.match(/"title"\s*:\s*"([^"]+)"/);
+      var dm=m.match(/"desc"\s*:\s*"([^"]+)"/);
+      if(lm&&tm&&dm)risks.push({level:lm[1],title:tm[1],desc:dm[1]});
+    });
+    // Extract missing items
+    var missing=[];
+    var misBlock=c.match(/"missing"\s*:\s*\[([^\]]*)/);
+    if(misBlock){
+      var misItems=misBlock[1].match(/"([^"]+)"/g)||[];
+      misItems.forEach(function(m){missing.push(m.replace(/"/g,''));});
+    }
+    return {score:score,verdict:verdict,risks:risks,fixes:[],suggestions:[],missing:missing,positives:[],summary:summary||'Az elemzés részlegesen készült el.'};
+  }
+}
+
+function showErr(id,m){var b=document.getElementById(id);b.textContent=m;b.style.display='block';}
+function hideErr(id){document.getElementById(id).style.display='none';}
+
+function loadSample(){
+  switchInp('text');
+  document.getElementById('contract-text').value='VÁLLALKOZÁSI SZERZŐDÉS\n\nLétrejött egyrészről Kovács Építő Kft. (székhely: 1051 Budapest, Vörösmarty tér 1., adószám: 12345678-2-41) mint Vállalkozó, másrészről Nagy János (lakcím: 1113 Budapest, Bocskai út 12.) mint Megrendelő között az alábbi feltételekkel:\n\n1. A Vállalkozó vállalja, hogy a Megrendelő részére festési és mázolási munkákat elvégez.\n2. A munka ellenértéke 800.000 Ft, amelyet a Megrendelő a munkák befejezése után fizet.\n3. A Vállalkozó késedelem esetén semmilyen kötbér megfizetésére nem köteles.\n4. A Megrendelő bármikor elállhat, de a teljes díjat köteles megfizetni.\n5. A jótállás és szavatosság kizárt.\n6. A szerződés határozatlan időre jön létre, felmondási idő nélkül.';
+  document.getElementById('char-count').textContent=document.getElementById('contract-text').value.length+' karakter';
+}
+
+function doReset(){
+  document.getElementById('analyze-results').classList.remove('show');
+  document.getElementById('contract-text').value='';
+  _uploaded='';resetFile(null);
+  document.getElementById('char-count').textContent='0 karakter';
+  hideErr('analyze-err');
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+function doStop(){
+  _abort=true;
+  document.getElementById('analyze-loading').classList.remove('show');
+  document.getElementById('analyze-btn').disabled=false;
+  document.getElementById('chunk-info').style.display='none';
+}
+
+var _perspective='kiegyensúlyozott';
+var _perspectiveRole='mindkét fél';
+
+function setPerspective(btn){
+  document.querySelectorAll('.persp-btn').forEach(function(b){b.classList.remove('active');});
+  btn.classList.add('active');
+  _perspective=btn.getAttribute('data-val');
+  _perspectiveRole=btn.textContent.trim();
+}
+
+function buildSysQ(){
+  return 'Magyar ügyvéd vagy. Elemezd a szerz\u0151d\u00e9st. N\u00e9z\u0151pont: '+_perspective+'. '+
+    'Pontszám: 85-100=kiv\u00e1l\u00f3, 70-84=j\u00f3, 50-69=k\u00f6zepes, 30-49=gyenge, 0-29=vesz\u00e9lyes. '+
+    'V\u00e1laszolj CSAK valid JSON-ban: '+
+    '{"score":75,"verdict":"1 mondatos","risks":[{"level":"magas|k\u00f6zepes|alacsony","title":"c\u00edm","desc":"le\u00edr\u00e1s PTK","location":"fejezet/pont"}],"fixes":[{"problem":"gond","fix":"jav\u00edt\u00e1s","why":"indokl\u00e1s"}],"suggestions":["javaslat"],"missing":["hi\u00e1nyz\u00f3"],"positives":["poz"],"summary":"3 mondatos"}';
+}
+
+function buildSysDeep(){
+  return 'Magyar \u00fcgyv\u00e9d vagy. MELYELEMZEST vegzel. N\u00e9z\u0151pont: '+_perspective+'. '+
+    'Feladat: minden prob\u00e9m\u00e1s pontot azonos\u00edts KONKRET helymegjelöl\u00e9ssel (fejezet, pont sz\u00e1ma). '+
+    'Minden probl\u00e9m\u00e1hoz adj KONKRET jav\u00edt\u00e1si javaslatot – pontosan beilleszthet\u0151 sz\u00f6vegjavaslattal. '+
+    'PTK paragrafus hivatkoz\u00e1ssal minden meg\u00e1llap\u00edt\u00e1sn\u00e1l. '+
+    'Vizsg\u00e1ld: felek adatai, t\u00e1rgy, ellen\u00e9rt\u00e9k, fizet\u00e9si felt\u00e9telek, hat\u00e1rid\u0151k, '+
+    'k\u00e9sedelmi kamat PTK 6:155, k\u00f6tb\u00e9r PTK 6:185, felmond\u00e1s PTK 6:212, felel\u0151ss\u00e9g PTK 6:152, '+
+    'szavatos\u00e1g PTK 6:159, titoktart\u00e1s, GDPR, vitarendez\u00e9s, al\u00e1\u00edr\u00e1s. '+
+    'V\u00e1laszolj KIZÁRÓLAG valid JSON-ban: '+
+    '{"score":75,"verdict":"1 mondatos","perspective_note":"'+_perspectiveRole+' szempont","issues":[{"severity":"kritikus|figyelmeztet\u00e9s|info","title":"n\u00e9v","location":"pl. 3. fejezet 2. pont","original_text":"eredeti sz\u00f6veg","description":"m\u00e9lyelemz\u00e9s '+_perspectiveRole+' szempontj\u00e1b\u00f3l","legal_ref":"PTK","fix_text":"KONKRET beilleszthet\u0151 jav\u00edt\u00e1si sz\u00f6veg","fix_reason":"mi\u00e9rt"}],"missing":[{"item":"hi\u00e1nyz\u00f3","importance":"k\u00f6telez\u0151|aj\u00e1nlott|opcion\u00e1lis","why":"mi\u00e9rt","suggestion":"javaslat"}],"positives":["poz"],"summary":"\u00f6sszefoglal\u00e1s","top_actions":["teen\u0151 1","teen\u0151 2"]}';
+}
+
+async function doAnalyze(){
+  var text=_inp==='text'?document.getElementById('contract-text').value.trim():_uploaded.trim();
+  if(!text){showErr('analyze-err','Illessze be a szerzodes szoveget!');return;}
+  hideErr('analyze-err');
+  text=text.replace(/\r\n/g,'\n').replace(/\t/g,' ').replace(/ {2,}/g,' ').replace(/\n{4,}/g,'\n\n').trim();
+  if(text.length<30){showErr('analyze-err','Kerjuk illessze be a szerzodes szoveget!');return;}
+
+  var type=document.getElementById('contract-type').value;
+  var estPages=Math.max(1,Math.round(text.length/1800));
+
+  document.getElementById('analyze-btn').disabled=true;
+  document.getElementById('analyze-loading').classList.add('show');
+  document.getElementById('analyze-results').classList.remove('show');
+  document.getElementById('regen-result').style.display='none';
+  var prog=document.getElementById('analyze-prog');
+  prog.style.width='5%';
+
+  // Progress animáció
+  document.getElementById('load-title').textContent='Dokumentum elemzése folyamatban...';
+  document.getElementById('load-sub').textContent='~'+estPages+' oldal | 4 lépéses mélyelemzés | '+_perspectiveRole+' nézőpontból';
+  document.getElementById('chunk-info').style.display='block';
+
+  var progVal=5;
+  var progInterval=setInterval(function(){
+    if(progVal<88){progVal+=1;prog.style.width=progVal+'%';}
+    // Státusz üzenetek
+    if(progVal===15)document.getElementById('load-title').textContent='1/4 Struktúra felismerés...';
+    if(progVal===30)document.getElementById('load-title').textContent='2/4 Szakaszok mélyelemzése (párhuzamosan)...';
+    if(progVal===65)document.getElementById('load-title').textContent='3/4 Keresztellenőrzés...';
+    if(progVal===80)document.getElementById('load-title').textContent='4/4 Ügyvédi összefoglaló...';
+  },1500);
+
+  try{
+    var result=await callBackend('analyze',{
+      text:text,
+      type:type,
+      perspective:_perspective
+    });
+
+    clearInterval(progInterval);
+    prog.style.width='100%';
+
+    if(result.error)throw new Error(result.error);
+
+    result._origText=text;
+    result._type=type;
+    result._pages=estPages;
+    _last=result;
+    renderResult(result);
+
+  }catch(err){
+    clearInterval(progInterval);
+    document.getElementById('analyze-loading').classList.remove('show');
+    showErr('analyze-err','Hiba: '+err.message);
+  }
+  document.getElementById('analyze-btn').disabled=false;
+  document.getElementById('chunk-info').style.display='none';
+}
+
+
+function parseDeepResult(raw){
+  if(!raw||!raw.trim())return {score:50,verdict:'Üres válasz.',issues:[],missing:[],positives:[],summary:'Próbálja újra.',top_actions:[]};
+  var c=raw.replace(/```json\s*/gi,'').replace(/```\s*/g,'').trim();
+  var st=c.indexOf('{');if(st<0)return {score:50,verdict:'Hiba.',issues:[],missing:[],positives:[],summary:'',top_actions:[]};
+  c=c.substring(st);
+  try{
+    var r=JSON.parse(c);
+    if(!r.issues&&r.risks)r.issues=r.risks.map(function(x){return {severity:x.level==='magas'?'kritikus':x.level==='közepes'?'figyelmeztetés':'info',title:x.title,location:x.location||'',description:x.desc,legal_ref:'',fix_text:'',fix_reason:''};});
+    if(!r.issues)r.issues=[];if(!r.missing)r.missing=[];if(!r.positives)r.positives=[];
+    if(!r.score)r.score=50;if(!r.top_actions)r.top_actions=[];
+    return r;
+  }catch(e){
+    try{c=c.replace(/,\s*}/g,'}').replace(/,\s*]/g,']');
+      var op=0,cl=0;for(var i=0;i<c.length;i++){if(c[i]==='{')op++;if(c[i]==='}')cl++;}
+      for(var j=0;j<op-cl;j++)c+='}';
+      var r2=JSON.parse(c);
+      if(!r2.issues)r2.issues=[];if(!r2.missing)r2.missing=[];if(!r2.positives)r2.positives=[];
+      if(!r2.score)r2.score=50;if(!r2.top_actions)r2.top_actions=[];return r2;
+    }catch(e2){return {score:50,verdict:'Részleges elemzés.',issues:[],missing:[],positives:[],summary:'Az elemzés részlegesen elkészült.',top_actions:[]};}
+  }
+}
+
+
+
+function renderResult(r){
+  document.getElementById('analyze-loading').classList.remove('show');
+  var sc=r.score>=70?'var(--green)':r.score>=40?'var(--orange)':'var(--red)';
+  var sb=r.score>=70?'var(--green-bg)':r.score>=40?'var(--orange-bg)':'var(--red-bg)';
+  var sbl=r.score>=70?'var(--green-border)':r.score>=40?'var(--orange-border)':'var(--red-border)';
+  var sl=r.score>=70?'Alacsony kockázat':r.score>=40?'Közepes kockázat':'Magas kockázat';
+  var circ=(Math.PI*2*40).toFixed(1);
+  var dash=(Math.PI*2*40*(1-r.score/100)).toFixed(1);
+  document.getElementById('score-container').innerHTML=
+    '<div class="score-panel" style="background:'+sb+';border-color:'+sbl+'">'+
+    '<div class="score-gauge"><svg viewBox="0 0 100 100" width="100" height="100">'+
+    '<circle cx="50" cy="50" r="40" fill="none" stroke="var(--border)" stroke-width="8"/>'+
+    '<circle cx="50" cy="50" r="40" fill="none" stroke="'+sc+'" stroke-width="8" stroke-dasharray="'+circ+'" stroke-dashoffset="'+dash+'" stroke-linecap="round"/>'+
+    '</svg><div class="score-center"><div class="score-big" style="color:'+sc+'">'+r.score+'</div><div class="score-of">/100</div></div></div>'+
+    '<div style="flex:1"><div style="font-size:11px;font-weight:700;color:'+sc+';letter-spacing:0.1em;text-transform:uppercase;margin-bottom:4px">'+sl+'</div>'+
+    '<div class="score-verdict-title">'+r.verdict+'</div>'+
+    (r.perspective_note?'<div style="font-size:13px;color:var(--blue);background:var(--blue-bg);border-radius:4px;padding:8px 12px;margin-top:8px;border:1px solid var(--blue-border)"><strong>'+_perspectiveRole+'</strong>: '+r.perspective_note+'</div>':'')+
+    (r.top_actions&&r.top_actions.length?'<div style="margin-top:10px"><div style="font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:5px">Legsürgősebb teendők</div>'+
+    r.top_actions.map(function(a,i){return '<div style="font-size:13px;color:var(--ink);padding:3px 0;display:flex;gap:6px"><span style="color:'+sc+';font-weight:700;flex-shrink:0">'+(i+1)+'.</span>'+a+'</div>';}).join('')+'</div>':'')+
+    '</div></div>';
+  var fixesHtml='';
+  if(r.issues&&r.issues.length){
+    fixesHtml=r.issues.map(function(issue){
+      var sev=issue.severity||'figyelmeztetés';
+      var cls=sev==='kritikus'?'critical':sev==='figyelmeztetés'?'warning':'info';
+      var sevC=sev==='kritikus'?'var(--red)':sev==='figyelmeztetés'?'var(--orange)':'var(--blue)';
+      var sevL=sev==='kritikus'?'KRITIKUS':sev==='figyelmeztetés'?'FIGYELMEZTETÉS':'INFO';
+      return '<div class="deep-issue '+cls+'">'+
+        '<div style="display:flex;align-items:flex-start;gap:10px;margin-bottom:8px">'+
+        '<div style="flex:1"><div class="deep-issue-title">'+issue.title+'</div>'+
+        (issue.location?'<div class="deep-issue-loc">Helye: '+issue.location+(issue.legal_ref?' · '+issue.legal_ref:'')+'</div>':issue.legal_ref?'<div class="deep-issue-loc">'+issue.legal_ref+'</div>':'')+
+        '</div><span style="font-size:10px;font-weight:700;padding:3px 9px;border-radius:10px;background:'+sevC+';color:white;white-space:nowrap;flex-shrink:0">'+sevL+'</span></div>'+
+        (issue.original_text?'<div class="deep-original">Eredeti: '+issue.original_text+'</div>':'')+
+        '<div class="deep-issue-desc">'+issue.description+'</div>'+
+        (issue.fix_text?'<div class="deep-fix-box"><div class="deep-fix-label">Javasolt megoldás</div><div class="deep-fix-text">'+issue.fix_text+'</div>'+(issue.fix_reason?'<div style="font-size:11px;color:var(--text3);margin-top:5px;font-style:italic">'+issue.fix_reason+'</div>':'')+  '</div>':'')+
+        '</div>';
+    }).join('');
+  }else if(r.fixes&&r.fixes.length){
+    fixesHtml=r.fixes.map(function(f,i){
+      return '<div class="fix-item"><div class="fix-idx">'+(i+1)+'. javítás</div>'+(f.problem?'<div class="fix-before">'+f.problem+'</div>':'')+'<div class="fix-after">'+f.fix+'</div><div class="fix-reason">'+f.why+'</div></div>';
+    }).join('');
+  }
+  document.getElementById('fixes-container').innerHTML=fixesHtml||'<div style="color:var(--text3);font-size:13px">Nem azonosítottunk javítandó pontot.</div>';
+  document.getElementById('regen-chips').innerHTML=(r.suggestions||[]).slice(0,6).map(function(s){return '<span class="chip" onclick="this.classList.toggle(&quot;on&quot;)">'+s+'</span>';}).join('');
+  var rH='';
+  if(r.issues&&r.issues.length){
+    var crit=r.issues.filter(function(i){return i.severity==='kritikus';});
+    rH=(crit.length?'<div style="font-size:11px;font-weight:700;color:var(--red);text-transform:uppercase;margin-bottom:6px">Kritikus ('+crit.length+')</div>':'')+
+      r.issues.slice(0,10).map(function(iss){
+        var c=iss.severity==='kritikus'?'high':iss.severity==='figyelmeztetés'?'med':'low';
+        return '<div class="risk-item '+c+'"><div class="risk-bar"></div><div style="flex:1"><div class="risk-title">'+iss.title+'</div>'+(iss.location?'<div style="font-size:11px;color:var(--text3)">Helye: '+iss.location+'</div>':'')+'<div class="risk-desc">'+(iss.description||'').substring(0,100)+'</div></div></div>';
+      }).join('');
+  }else if(r.risks){
+    var rc={'magas':'high','közepes':'med','alacsony':'low'};
+    rH=r.risks.map(function(risk){var c=rc[risk.level]||'med';return '<div class="risk-item '+c+'"><div class="risk-bar"></div><div style="flex:1"><div class="risk-title">'+risk.title+'</div><div class="risk-desc">'+risk.desc+'</div></div><div class="risk-pill">'+risk.level+'</div></div>';}).join('');
+  }
+  document.getElementById('risks-container').innerHTML=rH||'<div style="color:var(--text3);font-size:13px">Nem azonosítottunk kockázatot.</div>';
+  var mH='';
+  (r.missing||[]).forEach(function(m){
+    if(typeof m==='object'&&m.item){
+      var imp=m.importance==='kötelező'?'KÖTELEZŐ':m.importance==='ajánlott'?'AJÁNLOTT':'OPCIONÁLIS';
+      var impC=m.importance==='kötelező'?'var(--red)':m.importance==='ajánlott'?'var(--orange)':'var(--green)';
+      mH+='<div class="tag-miss"><strong>'+m.item+'</strong><span style="font-size:10px;margin-left:6px;color:'+impC+';font-weight:700">'+imp+'</span>'+(m.why?'<div style="font-size:12px;margin-top:3px;opacity:0.8">'+m.why+'</div>':'')+(m.suggestion?'<div style="font-size:11px;color:var(--green);margin-top:3px">Javaslat: '+m.suggestion+'</div>':'')+'</div>';
+    }else{mH+='<div class="tag-miss">'+m+'</div>';}
+  });
+  document.getElementById('missing-container').innerHTML=mH||'<div style="color:var(--text3);font-size:13px">Nem azonosítottunk hiányosságot.</div>';
+  document.getElementById('pos-container').innerHTML=(r.positives||[]).map(function(p){return '<div class="tag-pos">'+p+'</div>';}).join('')||'<div style="color:var(--text3);font-size:13px">–</div>';
+  document.getElementById('summary-container').innerHTML='<div class="summary-box">'+(r._pages&&r._pages>3?'<div style="font-size:11px;color:var(--text3);margin-bottom:8px">~'+r._pages+' oldal · Nézőpont: '+_perspectiveRole+'</div>':'')+r.summary+'</div>';
+  document.getElementById('analyze-results').classList.add('show');
+  setTimeout(function(){document.getElementById('analyze-results').scrollIntoView({behavior:'smooth'});},100);
+}
+
+
+async function doRegen(){
+  if(!_last)return;
+  var chips=[].slice.call(document.querySelectorAll('#regen-chips .chip.on')).map(function(c){return c.textContent;});
+  var extra=document.getElementById('regen-extra').value.trim();
+  var favor=document.getElementById('regen-favor').value;
+  var btn=document.getElementById('regen-btn');
+  btn.disabled=true;btn.textContent='Generálás folyamatban...';
+  document.getElementById('regen-result').style.display='none';
+  var fixes=(_last.fixes||[]).map(function(f,i){return (i+1)+'. '+f.fix;}).join('\n');
+  var sys='Te egy tapasztalt magyar ügyvéd vagy, aki komplex, teljes körű szerz. készít. '+
+    'FELADAT: Készíts '+level+' '+type+'t a PTK alapján. NÉZŐPONT: Védd '+favor+' érdekeit. '+
+    'KÖTELEZŐ ELEMEK: 1.Fejléc+felek adatai 2.Preambulum 3.Fogalommeghatározások 4.Szerz. tárgya '+
+    '5.Ellenérték+fizetési feltételek 6.Teljesítési feltételek+határidők 7.Felek kötelezettségei '+
+    '8.Szavatosság PTK 6:159 9.Felelősség korlátozás PTK 6:152 10.Kötbér PTK 6:185 '+
+    '11.Késedelmi kamat PTK 6:155 12.Titoktartás+GDPR 13.Felmondás PTK 6:212 '+
+    '14.Vis maior 15.Vitarendezés 16.Vegyes rendelkezések 17.Aláírási blokk. '+
+    'Legyen TELJES, RÉSZLETES, minden záradék kidolgozva! Csak a szerz. szövegét add vissza!';
+  var user='Eredeti szerződés:\n\n'+(_last._origText||'').substring(0,5000)+'\n\nJavítandó pontok:\n'+fixes+(chips.length?'\nJavasolt kiegészítések:\n'+chips.join('\n'):'')+( extra?'\nExtra szempontok:\n'+extra:'')+'\n\nÍrd meg a javított teljes szerződést!';
+  try{
+    var res=await callAPI(sys,user,4000);
+    _regen=res;
+    document.getElementById('regen-out').innerHTML=formatContract(res);
+    document.getElementById('regen-result').style.display='block';
+    document.getElementById('regen-result').scrollIntoView({behavior:'smooth'});
+  }catch(e){showErr('analyze-err','Hiba: '+e.message);}
+  btn.disabled=false;btn.textContent='Javított szerződés generálása →';
+}
+
+function analyzeRegen(){
+  document.getElementById('contract-text').value=_regen;
+  switchInp('text');showPage('analyze',document.querySelectorAll('.page-tab')[0]);
+  window.scrollTo({top:0,behavior:'smooth'});setTimeout(doAnalyze,300);
+}
+
+var SMART_HINTS={
+  'Befektetési szerz':[ {text:'Exit stratégia – mikor és hogyan szállhat ki a befektető (IPO, visszavásárlás)',importance:'must'},{text:'Anti-dilution védelem – részesedés hígulásának védelme új tőkekörökben',importance:'must'},{text:'Vétójog – stratégiai döntésekre befektetői vétójog',importance:'must'},{text:'Drag-along és tag-along jog',importance:'must'},{text:'Likvidációs preferencia – csőd esetén befektető elsőbbsége',importance:'must'},{text:'Információs jogok – rendszeres pénzügyi jelentések',importance:'rec'},{text:'Vesting ütemterv – alapítói részesedés fokozatos megszerzése',importance:'opt'}],
+  'Részvényesi':[ {text:'Elsőbbségi vételi jog (ROFR)',importance:'must'},{text:'Drag-along jog',importance:'must'},{text:'Tag-along jog',importance:'must'},{text:'Osztalékpolitika',importance:'must'},{text:'Deadlock mechanizmus',importance:'rec'},{text:'Goodleaver/badleaver rendelkezések',importance:'rec'}],
+  'Munkaszerz':[ {text:'Versenytilalmi záradék – meddig nem dolgozhat versenytársnál',importance:'must'},{text:'Titoktartási kötelezettség munkaviszony után is',importance:'must'},{text:'Szellemi alkotások átszállása a munkáltatóra',importance:'must'},{text:'Felmondási idő és végkielégítés pontos szabályai',importance:'must'},{text:'Célbónusz és teljesítménymérés szabályai',importance:'rec'},{text:'Home office feltételei',importance:'opt'}],
+  'Vállalkozási':[ {text:'Kötbér késedelemért – napi összeg (PTK 6:185)',importance:'must'},{text:'Teljesítési határidő és mérföldkövek',importance:'must'},{text:'Fizetési feltételek – előleg, részletek aránya',importance:'must'},{text:'Szavatossági feltételek (PTK 6:159)',importance:'must'},{text:'Elállás és felmondás feltételei (PTK 6:212)',importance:'must'},{text:'Vis maior szabályozás',importance:'rec'}],
+  'Bérleti':[ {text:'Bérleti díj indexálás – inflációs klauzula',importance:'must'},{text:'Óvadék (kaució) és visszafizetés feltételei',importance:'must'},{text:'Állagmegóvás és karbantartás felelőssége',importance:'must'},{text:'Felmondási idő mindkét félre',importance:'must'},{text:'Közüzemi díjak elszámolása',importance:'rec'}],
+  'Titoktartási':[ {text:'Védett információ pontos meghatározása',importance:'must'},{text:'Titoktartási időtartam (évek száma)',importance:'must'},{text:'Szankciók titoktartás megsértése esetén',importance:'must'},{text:'Kivételek – mi nem minősül bizalmasnak',importance:'must'},{text:'Információ visszaadásának kötelezettsége',importance:'rec'}],
+  'Adásvételi':[ {text:'Termék/ingatlan pontos azonosítása',importance:'must'},{text:'Vételár fizetési ütemterv',importance:'must'},{text:'Tulajdonjog átszállásának időpontja',importance:'must'},{text:'Szavatossági feltételek',importance:'must'},{text:'Visszalépési jog feltételei',importance:'must'}]
+};
+
+function getSmartHints(){
+  var type=document.getElementById('gen-type').value;
+  var panel=document.getElementById('smart-hints-panel');
+  var list=document.getElementById('smart-hints-list');
+  var hints=null;
+  for(var key in SMART_HINTS){if(type.indexOf(key)>=0){hints=SMART_HINTS[key];break;}}
+  if(hints){
+    var impL={'must':'KÖTELEZŐ','rec':'AJÁNLOTT','opt':'OPCIONÁLIS'};
+    list.innerHTML=hints.map(function(h,i){
+      return '<div class="hint-item"><input type="checkbox" class="hint-check" id="hc'+i+'" checked>'+
+        '<label for="hc'+i+'" class="hint-text">'+h.text+'</label>'+
+        '<span class="hint-badge '+h.importance+'">'+impL[h.importance]+'</span></div>';
+    }).join('');
+    panel.style.display='block';
+  } else if(type&&getKey()){
+    list.innerHTML='<div style="text-align:center;padding:1rem;color:var(--text3)">AI útmutató generálása...</div>';
+    panel.style.display='block';
+    callBackend('generate',{action:'hints',type:type,favor:document.getElementById('gen-favor').value})
+    .then(function(d){
+      try{
+        var impL={'must':'KÖTELEZŐ','rec':'AJÁNLOTT','opt':'OPCIONÁLIS'};
+        list.innerHTML=(d.hints||[]).map(function(h,i){
+          return '<div class="hint-item"><input type="checkbox" class="hint-check" id="hc'+i+'" checked>'+
+            '<label for="hc'+i+'" class="hint-text">'+h.text+'</label>'+
+            '<span class="hint-badge '+(h.importance||'opt')+'">'+(impL[h.importance]||'OPCIONÁLIS')+'</span></div>';
+        }).join('');
+      }catch(e){list.innerHTML='<div style="color:var(--red);font-size:13px">Hiba. Próbálja újra!</div>';}
+    }).catch(function(){list.innerHTML='<div style="color:var(--red);font-size:13px">Hiba. Próbálja újra!</div>';});
+  } else {
+    list.innerHTML='<div style="color:var(--text3);font-size:13px">Válasszon szerz. típust!</div>';
+    panel.style.display='block';
+  }
+}
+
+function addSmartHints(){
+  var items=[].slice.call(document.querySelectorAll('#smart-hints-list .hint-check:checked')).map(function(c){return c.nextElementSibling.textContent;});
+  if(!items.length){alert('Jelölj ki legalább egyet!');return;}
+  var sp=document.getElementById('gen-special');
+  sp.value=(sp.value.trim()?sp.value.trim()+'\n':'')+items.join('\n');
+  document.getElementById('smart-hints-panel').style.display='none';
+}
+
+
+async function getSuggestions(){
+  var type=document.getElementById('gen-type').value;
+  var details=document.getElementById('gen-details').value;
+  if(!type&&!details){alert('Add meg a szerződés típusát és tárgyát!');return;}
+  if(!getKey()){alert('Add meg az API kulcsodat!');return;}
+  var btn=document.getElementById('sug-btn');
+  btn.disabled=true;btn.textContent='Javaslatok betöltése...';
+  try{
+    var raw=await callAPI(
+      'Magyar jogász vagy. Adj 7 konkrét javaslatot mit érdemes belefoglalni ebbe a szerződésbe. Válaszolj CSAK JSON tömbként: ["javaslat 1",...] Semmi más!',
+      'Típus: '+(type||'általános')+'\nTárgy: '+(details||'általános'),800
+    );
+    var sugs=parseJ(raw);
+    document.getElementById('sug-list').innerHTML=(Array.isArray(sugs)?sugs:[]).map(function(s,i){
+      return '<div class="sug-item"><input type="checkbox" class="sug-check" id="sg'+i+'" checked><label for="sg'+i+'" class="sug-text">'+s+'</label></div>';
+    }).join('');
+    document.getElementById('sug-panel').style.display='block';
+  }catch(e){alert('Hiba: '+e.message);}
+  btn.disabled=false;btn.textContent='💡 Mit javasol még az AI?';
+}
+
+function addSuggestions(){
+  var ch=[].slice.call(document.querySelectorAll('#sug-list .sug-check:checked')).map(function(c){return c.nextElementSibling.textContent;});
+  if(!ch.length){alert('Jelölj ki legalább egyet!');return;}
+  var sp=document.getElementById('gen-special');
+  sp.value=(sp.value.trim()?sp.value.trim()+'\n':'')+ch.join('\n');
+  document.getElementById('sug-panel').style.display='none';
+}
+
+async function doGenerate(){
+  var type=document.getElementById('gen-type').value;
+  if(!type){showErr('gen-err','Valassz szerzodes tipust!');return;}
+  var details=document.getElementById('gen-details').value;
+  if(!details){showErr('gen-err','Ird le a szerzodes targyat!');return;}
+  hideErr('gen-err');
+
+  document.getElementById('gen-btn').disabled=true;
+  document.getElementById('gen-loading').classList.add('show');
+  document.getElementById('gen-result').style.display='none';
+
+  try{
+    var result=await callBackend('generate',{
+      action:'generate',
+      type:type,
+      favor:document.getElementById('gen-favor').value,
+      party1:document.getElementById('gen-p1').value,
+      party2:document.getElementById('gen-p2').value,
+      amount:document.getElementById('gen-amount').value,
+      deadline:document.getElementById('gen-deadline').value,
+      date:document.getElementById('gen-date').value,
+      level:document.getElementById('gen-level').value,
+      details:details,
+      special:document.getElementById('gen-special').value
+    });
+
+    if(result.error)throw new Error(result.error);
+    _gen=result.contract||'';
+    document.getElementById('gen-out').innerHTML=formatContract(_gen);
+    document.getElementById('gen-result').style.display='block';
+    document.getElementById('gen-result').scrollIntoView({behavior:'smooth'});
+  }catch(e){showErr('gen-err','Hiba: '+e.message);}
+
+  document.getElementById('gen-loading').classList.remove('show');
+  document.getElementById('gen-btn').disabled=false;
+}
+
+
+function analyzeGenerated(){
+  document.getElementById('contract-text').value=_gen;
+  switchInp('text');showPage('analyze',document.querySelectorAll('.page-tab')[0]);
+  window.scrollTo({top:0,behavior:'smooth'});setTimeout(doAnalyze,300);
+}
+
+// PRINT
+function printAnalysis(){
+  if(!_last)return;
+  var r=_last;
+  var sc=r.score>=70?'#1A7A4A':r.score>=40?'#C67C1A':'#C0392B';
+  var sb=r.score>=70?'#EDF7F2':r.score>=40?'#FDF5E6':'#FDF0EE';
+  var sl=r.score>=70?'Alacsony kockázat':r.score>=40?'Közepes kockázat':'Magas kockázat';
+  var rC={'magas':'#C0392B','közepes':'#C67C1A','alacsony':'#1A7A4A'};
+  var rB={'magas':'#FDF0EE','közepes':'#FDF5E6','alacsony':'#EDF7F2'};
+  var html='<!DOCTYPE html><html><head><meta charset="UTF-8">'+
+    '<link href="https://fonts.googleapis.com/css2?family=Cormorant:wght@400;600;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">'+
+    '<title>LexAI – Elemzési Jelentés</title>'+
+    '<style>'+
+    '*{box-sizing:border-box;margin:0;padding:0}'+
+    'body{font-family:"DM Sans",sans-serif;color:#2C3444;background:white;padding:0}'+
+    '.page{max-width:800px;margin:0 auto;padding:48px}'+
+    '.header{display:flex;justify-content:space-between;align-items:flex-end;padding-bottom:20px;margin-bottom:32px;border-bottom:2px solid #B8912A}'+
+    '.logo{font-family:"Cormorant",serif;font-size:26px;font-weight:600;color:#B8912A;letter-spacing:0.04em}'+
+    '.hdr-right{text-align:right;font-size:11px;color:#9AA3B0;letter-spacing:0.04em;line-height:1.8}'+
+    '.score-box{padding:24px;border-radius:6px;margin-bottom:28px;display:flex;align-items:center;gap:20px;border:1px solid}'+
+    '.score-circle{width:80px;height:80px;border-radius:50%;border:3px solid '+sc+';display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0;background:white}'+
+    '.score-num{font-family:"Cormorant",serif;font-size:28px;font-weight:700;color:'+sc+';line-height:1}'+
+    '.score-of{font-size:9px;color:#9AA3B0}'+
+    'h2{font-family:"Cormorant",serif;font-size:16px;font-weight:600;color:#0A0F1A;letter-spacing:0.05em;text-transform:uppercase;border-bottom:1px solid #E8E3DA;padding-bottom:8px;margin:24px 0 12px}'+
+    '.fix{padding:12px 14px;border-radius:4px;margin-bottom:8px;background:#EDF7F2;border:1px solid #A8DFC0}'+
+    '.fix-idx{font-size:9px;font-weight:700;color:#9AA3B0;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:6px}'+
+    '.fix-before{font-size:11px;color:#C0392B;text-decoration:line-through;font-style:italic;margin-bottom:5px;background:#FDF0EE;padding:4px 8px;border-radius:3px}'+
+    '.fix-after{font-size:12px;color:#1A7A4A;font-weight:500;margin-bottom:4px}'+
+    '.fix-reason{font-size:11px;color:#9AA3B0;font-style:italic}'+
+    '.risk{padding:10px 14px;border-radius:4px;margin-bottom:6px;border:1px solid;display:flex;gap:10px;align-items:flex-start}'+
+    '.risk-bar{width:3px;border-radius:2px;align-self:stretch;min-height:20px;flex-shrink:0}'+
+    '.risk-title{font-size:13px;font-weight:500;color:#0A0F1A;margin-bottom:2px}'+
+    '.risk-desc{font-size:11px;color:#6B7587;line-height:1.5;font-weight:300}'+
+    '.risk-lvl{font-size:9px;font-weight:700;padding:2px 8px;border-radius:10px;margin-left:auto;flex-shrink:0;white-space:nowrap;color:white;letter-spacing:0.05em}'+
+    '.tag{padding:7px 12px;border-radius:0 4px 4px 0;margin-bottom:5px;font-size:12px;font-weight:300}'+
+    '.miss{border-left:3px solid #C67C1A;background:#FDF5E6}'+
+    '.pos{border-left:3px solid #1A7A4A;background:#EDF7F2}'+
+    '.summary{background:#FDF8EE;border:1px solid #F0D9A8;border-radius:4px;padding:14px;font-size:13px;line-height:1.8;font-weight:300}'+
+    '.two-col{display:grid;grid-template-columns:1fr 1fr;gap:16px}'+
+    '.footer{margin-top:40px;padding-top:14px;border-top:1px solid #E8E3DA;display:flex;justify-content:space-between;font-size:10px;color:#9AA3B0;letter-spacing:0.04em}'+
+    '@media print{button{display:none!important}.page{padding:20px}@page{margin:1cm;size:A4}}'+
+    '</style></head><body><div class="page">'+
+    '<div class="header">'+
+    '<div><div class="logo">LexAI</div><div style="font-size:11px;color:#9AA3B0;margin-top:3px;letter-spacing:0.06em">ELEMZÉSI JELENTÉS</div></div>'+
+    '<div class="hdr-right"><div>Dátum: '+new Date().toLocaleDateString('hu-HU')+'</div><div>Típus: '+(r._type||'Általános')+'</div></div></div>'+
+    '<div class="score-box" style="background:'+sb+';border-color:'+(r.score>=70?'#A8DFC0':r.score>=40?'#F0D9A8':'#F0C4BE')+'">'+
+    '<div class="score-circle"><div class="score-num">'+r.score+'</div><div class="score-of">/100</div></div>'+
+    '<div><div style="font-family:Cormorant,serif;font-size:20px;font-weight:600;color:'+sc+';margin-bottom:4px">'+sl+'</div>'+
+    '<div style="font-size:13px;color:#6B7587;font-weight:300">'+r.verdict+'</div></div></div>'+
+    '<h2>Javítási javaslatok</h2>'+
+    (r.fixes||[]).map(function(f,i){
+      return '<div class="fix"><div class="fix-idx">'+(i+1)+'. javítás</div>'+
+        (f.problem?'<div class="fix-before">'+f.problem+'</div>':'')+
+        '<div class="fix-after">✓ '+f.fix+'</div>'+
+        '<div class="fix-reason">'+f.why+'</div></div>';
+    }).join('')+
+    '<h2>Azonosított kockázatok</h2>'+
+    (r.risks||[]).map(function(risk){
+      var c=rC[risk.level]||'#C67C1A';var b=rB[risk.level]||'#FDF5E6';
+      return '<div class="risk" style="background:'+b+';border-color:'+c+'44">'+
+        '<div class="risk-bar" style="background:'+c+'"></div>'+
+        '<div style="flex:1"><div class="risk-title">'+risk.title+'</div><div class="risk-desc">'+risk.desc+'</div></div>'+
+        '<div class="risk-lvl" style="background:'+c+'">'+risk.level.toUpperCase()+'</div></div>';
+    }).join('')+
+    '<div class="two-col">'+
+    '<div><h2>Hiányosságok</h2>'+(r.missing||[]).map(function(m){return '<div class="tag miss">'+m+'</div>';}).join('')+'</div>'+
+    '<div><h2>Pozitívumok</h2>'+(r.positives||[]).map(function(p){return '<div class="tag pos">'+p+'</div>';}).join('')+'</div>'+
+    '</div>'+
+    '<h2>Összefoglalás</h2><div class="summary">'+r.summary+'</div>'+
+    '<div style="margin-top:32px;text-align:center"><button onclick="window.print()" style="padding:12px 32px;background:#0A0F1A;color:#D4AF5A;border:none;border-radius:4px;font-size:14px;cursor:pointer;font-family:Cormorant,serif;letter-spacing:0.04em">Nyomtatás / PDF mentés</button></div>'+
+    '<div class="footer"><span>LexAI – Kizárólag tájékoztatási céllal. Nem minősül jogi tanácsadásnak.</span><span>© '+new Date().getFullYear()+' LexAI</span></div>'+
+    '</div></body></html>';
+  var w=window.open('','_blank');w.document.write(html);w.document.close();
+}
+
+function printContract(text){
+  if(!text)return;
+  
+  // Convert markdown to clean HTML for print
+  function mdToHtml(lines){
+    var html='';
+    var inList=false;
+    lines.forEach(function(line){
+      var t=line
+        .replace(/\*\*\*([^*]+)\*\*\*/g,'<strong><em>$1</em></strong>')
+        .replace(/\*\*([^*]+)\*\*/g,'<strong>$1</strong>')
+        .replace(/\*([^*]+)\*/g,'<em>$1</em>')
+        .trim();
+      if(!t){if(inList){html+='</ul>';inList=false;}html+='<div style="margin:5px 0"></div>';return;}
+      if(t.startsWith('# ')){
+        if(inList){html+='</ul>';inList=false;}
+        html+='<h1>'+t.replace(/^#+ /,'')+'</h1>';return;
+      }
+      if(t.startsWith('## ')){
+        if(inList){html+='</ul>';inList=false;}
+        html+='<h2>'+t.replace(/^##+ /,'')+'</h2>';return;
+      }
+      if(t.startsWith('### ')){
+        if(inList){html+='</ul>';inList=false;}
+        html+='<h3>'+t.replace(/^###+ /,'')+'</h3>';return;
+      }
+      if(/^\d+\.\d*\s/.test(t)){
+        if(inList){html+='</ul>';inList=false;}
+        var isMain=/^\d+\.\s/.test(t)&&!/^\d+\.\d/.test(t);
+        html+='<p class="'+(isMain?'main-point':'sub-point')+'">'+t+'</p>';return;
+      }
+      if(t.startsWith('- ')||t.startsWith('• ')){
+        if(!inList){html+='<ul>';inList=true;}
+        html+='<li>'+t.replace(/^[-•] /,'')+'</li>';return;
+      }
+      if(t==='---'||t==='***'||t==='___'){
+        if(inList){html+='</ul>';inList=false;}
+        html+='<hr>';return;
+      }
+      if(t===t.toUpperCase()&&t.length>4&&t.length<80&&/[A-ZÁÉÍÓÖŐÚÜŰ]/.test(t)&&!t.match(/^[0-9§.]+$/)){
+        if(inList){html+='</ul>';inList=false;}
+        html+='<h2>'+t+'</h2>';return;
+      }
+      if(inList){html+='</ul>';inList=false;}
+      html+='<p>'+t+'</p>';
+    });
+    if(inList)html+='</ul>';
+    return html;
+  }
+
+  var lines=text.split('\n');
+  var bodyHtml=mdToHtml(lines);
+
+  var html='<!DOCTYPE html><html><head><meta charset="UTF-8">'+
+    '<link href="https://fonts.googleapis.com/css2?family=Cormorant:wght@400;600;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">'+
+    '<title>LexAI – Szerződés</title>'+
+    '<style>'+
+    '*{box-sizing:border-box;margin:0;padding:0}'+
+    'body{font-family:"DM Sans",sans-serif;color:#2C3444;background:white;font-size:13px;line-height:1.8}'+
+    '.page{max-width:800px;margin:0 auto;padding:48px}'+
+    '.header{display:flex;justify-content:space-between;align-items:flex-end;padding-bottom:16px;margin-bottom:32px;border-bottom:2px solid #C9A84C}'+
+    '.logo{font-family:"Cormorant",serif;font-size:24px;font-weight:600;color:#C9A84C;letter-spacing:0.04em}'+
+    '.logo-sub{font-size:10px;color:#9AA3B0;letter-spacing:0.12em;text-transform:uppercase;margin-top:2px}'+
+    '.date{font-size:11px;color:#9AA3B0;text-align:right}'+
+    'h1{font-family:"Cormorant",serif;font-size:20px;font-weight:700;color:#08111E;margin:24px 0 12px;letter-spacing:0.02em;border-bottom:1px solid #DDD8CC;padding-bottom:6px}'+
+    'h2{font-family:"Cormorant",serif;font-size:16px;font-weight:700;color:#08111E;margin:20px 0 8px;letter-spacing:0.04em;text-transform:uppercase}'+
+    'h3{font-size:14px;font-weight:600;color:#1A2332;margin:14px 0 6px}'+
+    'p{font-size:13px;color:#2C3444;margin:4px 0;line-height:1.8;font-weight:300}'+
+    'p.main-point{font-weight:500;color:#08111E;margin:10px 0 4px}'+
+    'p.sub-point{padding-left:18px;color:#2C3444}'+
+    'ul{margin:6px 0 6px 22px;padding:0}'+
+    'li{font-size:13px;color:#2C3444;line-height:1.7;margin-bottom:3px;font-weight:300}'+
+    'hr{border:none;border-top:1px solid #DDD8CC;margin:16px 0}'+
+    'strong{font-weight:600;color:#08111E}'+
+    '.sign-section{margin-top:48px;display:grid;grid-template-columns:1fr 1fr;gap:40px}'+
+    '.sign-box{border-top:1px solid #2C3444;padding-top:8px}'+
+    '.sign-label{font-size:11px;color:#9AA3B0;letter-spacing:0.04em}'+
+    '.footer{margin-top:40px;padding-top:12px;border-top:1px solid #E8E3DA;font-size:10px;color:#9AA3B0;text-align:center;letter-spacing:0.04em}'+
+    'button.print-btn{display:block;margin:32px auto 0;padding:12px 32px;background:#08111E;color:#C9A84C;border:none;border-radius:4px;font-size:14px;cursor:pointer;font-family:"Cormorant",serif;letter-spacing:0.04em}'+
+    '@media print{button{display:none!important}.page{padding:20px}@page{margin:1.5cm;size:A4}}'+
+    '</style></head><body><div class="page">'+
+    '<div class="header">'+
+    '<div>'+
+    '<div class="logo">'+(_profile.firm_name?_profile.firm_name:'LexAI')+'</div>'+
+    '<div class="logo-sub">'+(_profile.firm_name?'LexAI által készített szerződés':'Szerződés')+'</div>'+
+    (_profile.address?'<div style="font-size:10px;color:#9AA3B0;margin-top:2px">'+_profile.address+'</div>':'')+
+    (_profile.tax_number?'<div style="font-size:10px;color:#9AA3B0">Adószám: '+_profile.tax_number+'</div>':'')+
+    '</div>'+
+    '<div class="date">'+new Date().toLocaleDateString('hu-HU')+'</div></div>'+
+    bodyHtml+
+    '<button class="print-btn" onclick="window.print()">Nyomtatás / PDF mentés</button>'+
+    '<div class="footer">LexAI – Kizárólag tájékoztatási céllal. Nem minősül jogi tanácsadásnak. © '+new Date().getFullYear()+' LexAI</div>'+
+    '</div></body></html>';
+  
+  var w=window.open('','_blank');
+  w.document.write(html);
+  w.document.close();
+}
+
+
+// FORMAT CONTRACT - converts markdown to clean HTML
+function formatContract(text){
+  if(!text)return '';
+  var lines=text.split('\n');
+  var html='';
+  var inList=false;
+  
+  lines.forEach(function(line){
+    // Remove markdown bold/italic markers
+    var t=line
+      .replace(/\*\*\*([^*]+)\*\*\*/g,'<strong><em>$1</em></strong>')
+      .replace(/\*\*([^*]+)\*\*/g,'<strong>$1</strong>')
+      .replace(/\*([^*]+)\*/g,'<em>$1</em>')
+      .replace(/---/g,'<hr>')
+      .trim();
+    
+    if(!t){
+      if(inList){html+='</ul>';inList=false;}
+      html+='<div style="margin:6px 0"></div>';
+      return;
+    }
+    
+    // H1 - ##
+    if(t.startsWith('# ')){
+      if(inList){html+='</ul>';inList=false;}
+      html+='<div style="font-family:Cormorant,serif;font-size:20px;font-weight:700;color:#0A0F1A;margin:24px 0 10px;padding-bottom:6px;border-bottom:2px solid #C9A84C;letter-spacing:0.03em">'+t.replace(/^#+ /,'')+'</div>';
+      return;
+    }
+    // H2 - ##
+    if(t.startsWith('## ')){
+      if(inList){html+='</ul>';inList=false;}
+      html+='<div style="font-family:Cormorant,serif;font-size:17px;font-weight:700;color:#0A0F1A;margin:20px 0 8px;letter-spacing:0.02em;text-transform:uppercase">'+t.replace(/^##+ /,'')+'</div>';
+      return;
+    }
+    // H3
+    if(t.startsWith('### ')){
+      if(inList){html+='</ul>';inList=false;}
+      html+='<div style="font-size:15px;font-weight:600;color:#1A2332;margin:14px 0 6px">'+t.replace(/^###+ /,'')+'</div>';
+      return;
+    }
+    // Numbered section (1. / 1.1.)
+    if(/^\d+\.\d*\s/.test(t)){
+      if(inList){html+='</ul>';inList=false;}
+      var isMain=/^\d+\.\s/.test(t)&&!/^\d+\.\d/.test(t);
+      html+='<div style="margin:10px 0 4px;'+(isMain?'font-weight:600;color:#0A0F1A;':'color:#2C3444;padding-left:16px;')+'font-size:13.5px;line-height:1.7">'+t+'</div>';
+      return;
+    }
+    // Bullet list
+    if(t.startsWith('- ')||t.startsWith('• ')){
+      if(!inList){html+='<ul style="margin:6px 0 6px 20px;padding:0">';inList=true;}
+      html+='<li style="font-size:13.5px;color:#2C3444;line-height:1.7;margin-bottom:3px">'+t.replace(/^[-•] /,'')+'</li>';
+      return;
+    }
+    // HR
+    if(t==='---'||t==='***'||t==='___'){
+      if(inList){html+='</ul>';inList=false;}
+      html+='<hr style="border:none;border-top:1px solid #DDD8CC;margin:16px 0">';
+      return;
+    }
+    // ALL CAPS = section title
+    if(t===t.toUpperCase()&&t.length>4&&t.length<80&&/[A-ZÁÉÍÓÖŐÚÜŰ]/.test(t)&&!t.match(/^[0-9§.]+$/)){
+      if(inList){html+='</ul>';inList=false;}
+      html+='<div style="font-family:Cormorant,serif;font-size:16px;font-weight:700;color:#0A0F1A;margin:20px 0 8px;letter-spacing:0.06em">'+t+'</div>';
+      return;
+    }
+    // Regular paragraph
+    if(inList){html+='</ul>';inList=false;}
+    html+='<div style="font-size:13.5px;color:#2C3444;line-height:1.75;margin:3px 0">'+t+'</div>';
+  });
+  
+  if(inList)html+='</ul>';
+  return html;
+}
+
+// INIT
+document.addEventListener('DOMContentLoaded',function(){
+  var ta=document.getElementById('contract-text');
+  if(ta)ta.addEventListener('input',function(){document.getElementById('char-count').textContent=ta.value.length+' karakter';});
+  
+  // Auth check
+  var tok=getSbToken();
+  if(tok){
+    loadProfile().then(function(){
+      // Prefill contract form after profile loaded (for returning users)
+      prefillContractForm();
+    });
+  }
+
+  // Prefill when switching to generate tab
+  document.querySelectorAll('.page-tab').forEach(function(tab){
+    tab.addEventListener('click', function(){
+      setTimeout(prefillContractForm, 50);
+    });
+  });
+});
+</script>
+</body>
+</html>

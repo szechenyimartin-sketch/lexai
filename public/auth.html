@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LexAI – Bejelentkezés</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant:wght@400;500;600;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'DM Sans',sans-serif;background:#08111E;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:2rem}
+.logo{font-family:'Cormorant',serif;font-size:32px;font-weight:600;color:#C9A84C;letter-spacing:0.06em;margin-bottom:8px;text-align:center}
+.logo-sub{font-size:11px;color:rgba(255,255,255,0.35);letter-spacing:0.18em;text-transform:uppercase;text-align:center;margin-bottom:2.5rem}
+.card{background:#fff;border-radius:8px;padding:2.5rem;width:100%;max-width:420px;box-shadow:0 24px 80px rgba(0,0,0,0.4)}
+.tabs{display:flex;border-bottom:1px solid #E8E3DA;margin-bottom:2rem}
+.tab{flex:1;padding:12px;text-align:center;font-size:14px;font-weight:500;cursor:pointer;color:#9AA3B0;border-bottom:2px solid transparent;margin-bottom:-1px;background:none;border-top:none;border-left:none;border-right:none;font-family:'DM Sans',sans-serif;transition:all 0.2s}
+.tab.active{color:#08111E;border-bottom-color:#C9A84C}
+.panel{display:none}.panel.active{display:block}
+.form-group{margin-bottom:1.25rem}
+.form-group label{display:block;font-size:12px;font-weight:600;color:#6B7888;text-transform:uppercase;letter-spacing:0.04em;margin-bottom:6px}
+.form-group input{width:100%;padding:11px 14px;border:1px solid #DDD8CC;border-radius:4px;font-size:14px;font-family:'DM Sans',sans-serif;color:#08111E;background:#FAFAF7;transition:border-color 0.2s}
+.form-group input:focus{outline:none;border-color:#C9A84C}
+.btn-main{width:100%;padding:13px;background:#08111E;color:#C9A84C;border:none;border-radius:4px;font-size:15px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif;letter-spacing:0.03em;transition:all 0.2s;margin-top:0.5rem}
+.btn-main:hover{background:#1A2332}
+.btn-main:disabled{opacity:0.6;cursor:not-allowed}
+.msg{padding:10px 14px;border-radius:4px;font-size:13px;margin-top:1rem;display:none}
+.msg.err{background:#FDF0EE;border:1px solid #F0C4BE;color:#A8281C}
+.msg.ok{background:#EDF7F2;border:1px solid #A8DFC0;color:#166048}
+.divider{text-align:center;font-size:12px;color:#9AA3B0;margin:1.25rem 0;position:relative}
+.divider::before,.divider::after{content:'';position:absolute;top:50%;width:40%;height:1px;background:#E8E3DA}
+.divider::before{left:0}.divider::after{right:0}
+.back-link{text-align:center;margin-top:1.5rem;font-size:13px;color:rgba(255,255,255,0.4)}
+.back-link a{color:#C9A84C;text-decoration:none}
+.back-link a:hover{text-decoration:underline}
+</style>
+</head>
+<body>
+<div class="logo">LexAI</div>
+<div class="logo-sub">Jogi AI Asszisztens</div>
+
+<div class="card">
+  <div class="tabs">
+    <button class="tab active" onclick="showTab('login',this)">Bejelentkezés</button>
+    <button class="tab" onclick="showTab('register',this)">Regisztráció</button>
+  </div>
+
+  <!-- LOGIN -->
+  <div class="panel active" id="panel-login">
+    <div class="form-group">
+      <label>Email cím</label>
+      <input type="email" id="login-email" placeholder="pl. iroda@example.hu" onkeydown="if(event.key==='Enter')doLogin()">
+    </div>
+    <div class="form-group">
+      <label>Jelszó</label>
+      <input type="password" id="login-pass" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()">
+    </div>
+    <button class="btn-main" id="login-btn" onclick="doLogin()">Bejelentkezés →</button>
+    <div class="msg" id="login-msg"></div>
+  </div>
+
+  <!-- REGISTER -->
+  <div class="panel" id="panel-register">
+    <div class="form-group">
+      <label>Iroda / Cég neve *</label>
+      <input type="text" id="reg-name" placeholder="pl. Kovács és Társai Ügyvédi Iroda">
+    </div>
+    <div class="form-group">
+      <label>Email cím *</label>
+      <input type="email" id="reg-email" placeholder="pl. iroda@example.hu">
+    </div>
+    <div class="form-group">
+      <label>Jelszó *</label>
+      <input type="password" id="reg-pass" placeholder="Min. 8 karakter">
+    </div>
+    <div class="form-group">
+      <label>Jelszó megerősítése *</label>
+      <input type="password" id="reg-pass2" placeholder="••••••••" onkeydown="if(event.key==='Enter')doRegister()">
+    </div>
+    <button class="btn-main" id="reg-btn" onclick="doRegister()">Regisztráció →</button>
+    <div class="msg" id="reg-msg"></div>
+  </div>
+</div>
+
+<div class="back-link"><a href="index.html">← Vissza a főoldalra</a></div>
+
+<script>
+var SURL='https://iklhmuroimjbfkswpjvi.supabase.co';
+var SKEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlrbGhtdXJvaW1qYmZrc3dwanZpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc2ODA4MTIsImV4cCI6MjA5MzI1NjgxMn0.rjP1VW5_QPeHyeE1vmjE_HxT76NBpx_RF_HwWt6Sv6A';
+
+function showTab(name,el){
+  document.querySelectorAll('.tab').forEach(function(t){t.classList.remove('active');});
+  document.querySelectorAll('.panel').forEach(function(p){p.classList.remove('active');});
+  el.classList.add('active');
+  document.getElementById('panel-'+name).classList.add('active');
+}
+
+function showMsg(id,text,type){
+  var el=document.getElementById(id);
+  el.textContent=text;el.className='msg '+type;el.style.display='block';
+}
+
+async function doLogin(){
+  var email=document.getElementById('login-email').value.trim();
+  var pass=document.getElementById('login-pass').value;
+  if(!email||!pass){showMsg('login-msg','Töltsd ki az összes mezőt!','err');return;}
+  var btn=document.getElementById('login-btn');
+  btn.disabled=true;btn.textContent='Bejelentkezés...';
+  try{
+    var r=await fetch(SURL+'/auth/v1/token?grant_type=password',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','apikey':SKEY},
+      body:JSON.stringify({email:email,password:pass})
+    });
+    var d=await r.json();
+    if(!r.ok)throw new Error(d.error_description||d.msg||'Hibás email vagy jelszó');
+    // Save session
+    localStorage.setItem('sb_token',d.access_token);
+    localStorage.setItem('sb_user',JSON.stringify(d.user));
+    // Load profile
+    var pr=await fetch(SURL+'/rest/v1/profiles?id=eq.'+d.user.id,{
+      headers:{'apikey':SKEY,'Authorization':'Bearer '+d.access_token}
+    });
+    var profile=await pr.json();
+    if(profile&&profile[0])localStorage.setItem('sb_profile',JSON.stringify(profile[0]));
+    window.location.href='app.html';
+  }catch(e){
+    showMsg('login-msg',e.message,'err');
+  }
+  btn.disabled=false;btn.textContent='Bejelentkezés →';
+}
+
+async function doRegister(){
+  var name=document.getElementById('reg-name').value.trim();
+  var email=document.getElementById('reg-email').value.trim();
+  var pass=document.getElementById('reg-pass').value;
+  var pass2=document.getElementById('reg-pass2').value;
+  if(!name||!email||!pass){showMsg('reg-msg','Töltsd ki az összes kötelező mezőt!','err');return;}
+  if(pass.length<8){showMsg('reg-msg','A jelszó legalább 8 karakter legyen!','err');return;}
+  if(pass!==pass2){showMsg('reg-msg','A két jelszó nem egyezik!','err');return;}
+  var btn=document.getElementById('reg-btn');
+  btn.disabled=true;btn.textContent='Regisztráció...';
+  try{
+    var r=await fetch(SURL+'/auth/v1/signup',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','apikey':SKEY},
+      body:JSON.stringify({email:email,password:pass,data:{firm_name:name}})
+    });
+    var d=await r.json();
+    if(!r.ok)throw new Error(d.error_description||d.msg||'Regisztrációs hiba');
+    if(d.access_token){
+      // Auto-login
+      localStorage.setItem('sb_token',d.access_token);
+      localStorage.setItem('sb_user',JSON.stringify(d.user));
+      // Create profile
+      await fetch(SURL+'/rest/v1/profiles',{
+        method:'POST',
+        headers:{'Content-Type':'application/json','apikey':SKEY,'Authorization':'Bearer '+d.access_token,'Prefer':'return=minimal'},
+        body:JSON.stringify({id:d.user.id,firm_name:name,email:email})
+      });
+      localStorage.setItem('sb_profile',JSON.stringify({firm_name:name,email:email}));
+      window.location.href='app.html';
+    } else {
+      showMsg('reg-msg','Sikeres regisztráció! Ellenőrizd az emailedet a megerősítő linkért.','ok');
+    }
+  }catch(e){
+    showMsg('reg-msg',e.message,'err');
+  }
+  btn.disabled=false;btn.textContent='Regisztráció →';
+}
+
+// Check if already logged in
+var tok=localStorage.getItem('sb_token');
+if(tok) window.location.href='app.html';
+</script>
+</body>
+</html>

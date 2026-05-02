@@ -1,0 +1,931 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LexAI – Jogi AI Asszisztens | Gyorsítsa meg munkafolyamatait</title>
+<meta name="description" content="LexAI az AI-alapú jogi asszisztens, amely 80%-kal gyorsítja meg a szerződéselemzési és dokumentáció munkát. Ügyvédi irodák és vállalatok számára.">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,600&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#08111E;
+  --ink2:#0F1E30;
+  --gold:#C9A84C;
+  --gold2:#E8C96A;
+  --gold-muted:#8A6E32;
+  --cream:#F7F4EE;
+  --cream2:#F0ECE3;
+  --white:#FFFFFF;
+  --border:#DDD8CC;
+  --border2:#C8C2B4;
+  --text:#303A48;
+  --text2:#6B7888;
+  --text3:#9AA5B4;
+  --red:#A8281C;--red-bg:#FBF0EE;--red-bd:#E8BDB8;
+  --amber:#A86018;--amber-bg:#FBF4E8;--amber-bd:#E8CFA8;
+  --teal:#166048;--teal-bg:#E8F4EE;--teal-bd:#A8D8C0;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'DM Sans',sans-serif;background:var(--white);color:var(--text);overflow-x:hidden}
+
+/* ========= NAV ========= */
+nav{
+  position:fixed;top:0;left:0;right:0;z-index:200;
+  height:72px;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 4rem;
+  background:rgba(8,17,30,0.96);
+  backdrop-filter:blur(16px);
+  border-bottom:1px solid rgba(201,168,76,0.2);
+  transition:all 0.3s;
+}
+.logo{
+  font-family:'Cormorant',serif;
+  font-size:24px;font-weight:500;
+  color:var(--gold2);
+  letter-spacing:0.06em;
+  display:flex;align-items:center;gap:10px;
+}
+.logo-badge{
+  font-family:'DM Sans',sans-serif;
+  font-size:9px;font-weight:500;
+  color:rgba(255,255,255,0.35);
+  letter-spacing:0.18em;text-transform:uppercase;
+  border-left:1px solid rgba(255,255,255,0.15);
+  padding-left:10px;margin-left:2px;
+}
+.nav-center{display:flex;gap:2.5rem;align-items:center}
+.nav-center a{font-size:13px;color:rgba(255,255,255,0.5);text-decoration:none;letter-spacing:0.02em;transition:color 0.2s}
+.nav-center a:hover{color:var(--gold2)}
+.nav-right{display:flex;align-items:center;gap:1rem}
+.nav-link{font-size:13px;color:rgba(255,255,255,0.5);text-decoration:none;transition:color 0.2s}
+.nav-link:hover{color:white}
+.nav-cta{
+  padding:9px 22px;
+  background:var(--gold);color:var(--ink);
+  border-radius:3px;font-size:13px;font-weight:500;
+  text-decoration:none;letter-spacing:0.03em;
+  transition:all 0.2s;
+}
+.nav-cta:hover{background:var(--gold2);transform:translateY(-1px)}
+
+/* ========= HERO ========= */
+.hero{
+  min-height:100vh;
+  background:var(--ink);
+  display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  padding:120px 4rem 80px;
+  position:relative;
+  overflow:hidden;
+  text-align:center;
+}
+.hero-bg{
+  position:absolute;inset:0;
+  background:
+    radial-gradient(ellipse 80% 60% at 50% 0%,rgba(201,168,76,0.06) 0%,transparent 60%),
+    radial-gradient(ellipse 40% 40% at 20% 80%,rgba(201,168,76,0.04) 0%,transparent 50%),
+    radial-gradient(ellipse 40% 40% at 80% 20%,rgba(201,168,76,0.03) 0%,transparent 50%);
+}
+.hero-line{
+  position:absolute;top:0;left:50%;transform:translateX(-50%);
+  width:1px;height:100%;
+  background:linear-gradient(to bottom,rgba(201,168,76,0.4),transparent 30%,transparent 70%,rgba(201,168,76,0.2));
+}
+.hero-content{position:relative;z-index:1;max-width:900px}
+.hero-eyebrow{
+  display:inline-flex;align-items:center;gap:10px;
+  font-size:11px;font-weight:500;
+  color:var(--gold);letter-spacing:0.16em;text-transform:uppercase;
+  margin-bottom:2.5rem;
+  border:1px solid rgba(201,168,76,0.25);
+  padding:8px 18px;border-radius:2px;
+  background:rgba(201,168,76,0.04);
+}
+.hero-eyebrow-dot{width:5px;height:5px;border-radius:50%;background:var(--gold);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
+.hero h1{
+  font-family:'Cormorant',serif;
+  font-size:clamp(48px,7vw,86px);
+  font-weight:300;
+  line-height:1.06;
+  color:var(--white);
+  letter-spacing:-0.02em;
+  margin-bottom:2rem;
+}
+.hero h1 em{
+  font-style:italic;
+  color:var(--gold2);
+  font-weight:300;
+}
+.hero h1 strong{
+  font-weight:600;
+  color:var(--white);
+}
+.hero-sub{
+  font-size:18px;font-weight:300;
+  color:rgba(255,255,255,0.55);
+  line-height:1.75;
+  max-width:620px;
+  margin:0 auto 3.5rem;
+}
+.hero-sub em{color:rgba(255,255,255,0.8);font-style:normal;font-weight:400}
+.hero-actions{display:flex;gap:1rem;justify-content:center;flex-wrap:wrap;margin-bottom:5rem}
+.btn-hero{
+  padding:16px 36px;
+  background:var(--gold);color:var(--ink);
+  border-radius:3px;font-size:16px;font-weight:500;
+  text-decoration:none;letter-spacing:0.03em;
+  transition:all 0.25s;
+  box-shadow:0 0 40px rgba(201,168,76,0.2);
+}
+.btn-hero:hover{background:var(--gold2);transform:translateY(-2px);box-shadow:0 8px 40px rgba(201,168,76,0.3)}
+.btn-hero-ghost{
+  padding:16px 28px;
+  color:rgba(255,255,255,0.6);
+  font-size:15px;text-decoration:none;
+  border:1px solid rgba(255,255,255,0.15);
+  border-radius:3px;
+  transition:all 0.2s;
+}
+.btn-hero-ghost:hover{color:white;border-color:rgba(255,255,255,0.35)}
+
+/* STATS */
+.hero-stats{
+  display:flex;gap:0;
+  border-top:1px solid rgba(255,255,255,0.08);
+  border-left:1px solid rgba(255,255,255,0.08);
+  border-radius:2px;
+  overflow:hidden;
+}
+.stat{
+  flex:1;
+  padding:1.75rem 2rem;
+  border-right:1px solid rgba(255,255,255,0.08);
+  border-bottom:1px solid rgba(255,255,255,0.08);
+  text-align:center;
+}
+.stat-val{
+  font-family:'Cormorant',serif;
+  font-size:42px;font-weight:600;
+  color:var(--gold2);line-height:1;
+  margin-bottom:6px;
+}
+.stat-label{font-size:11px;color:rgba(255,255,255,0.4);letter-spacing:0.08em;text-transform:uppercase}
+
+/* ========= MARQUEE ========= */
+.marquee-wrap{
+  background:var(--gold);
+  padding:14px 0;
+  overflow:hidden;
+  white-space:nowrap;
+}
+.marquee-track{
+  display:inline-block;
+  animation:marquee 30s linear infinite;
+}
+.marquee-track span{
+  font-size:12px;font-weight:500;
+  letter-spacing:0.12em;text-transform:uppercase;
+  color:var(--ink);
+  padding:0 2.5rem;
+}
+.marquee-track span::before{content:'◆';margin-right:2.5rem;opacity:0.4;font-size:8px}
+@keyframes marquee{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+
+/* ========= PROBLEM ========= */
+.problem{
+  padding:9rem 4rem;
+  background:var(--cream);
+  display:grid;grid-template-columns:1fr 1fr;gap:6rem;align-items:center;
+}
+.problem-left{}
+.problem-tag{font-size:10px;font-weight:500;color:var(--gold-muted);letter-spacing:0.16em;text-transform:uppercase;margin-bottom:1.25rem}
+.section-title{
+  font-family:'Cormorant',serif;
+  font-size:clamp(34px,4vw,52px);font-weight:500;
+  color:var(--ink);line-height:1.1;
+  letter-spacing:-0.02em;margin-bottom:1.25rem;
+}
+.section-title em{font-style:italic;color:var(--gold-muted)}
+.section-body{font-size:16px;color:var(--text2);line-height:1.8;font-weight:300;margin-bottom:2rem}
+.problem-items{display:flex;flex-direction:column;gap:1rem}
+.prob-item{
+  display:flex;gap:14px;align-items:flex-start;
+  padding:1.25rem 1.5rem;
+  background:var(--white);border:1px solid var(--border);border-radius:4px;
+}
+.prob-item-icon{
+  width:36px;height:36px;border-radius:3px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:16px;flex-shrink:0;background:var(--red-bg);
+}
+.prob-item-title{font-size:14px;font-weight:500;color:var(--ink);margin-bottom:3px}
+.prob-item-desc{font-size:13px;color:var(--text2);line-height:1.5;font-weight:300}
+
+.problem-right{
+  background:var(--ink);border-radius:6px;
+  padding:2.5rem;
+  position:relative;overflow:hidden;
+}
+.problem-right::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:2px;
+  background:linear-gradient(90deg,transparent,var(--gold),transparent);
+}
+.comparison-title{
+  font-family:'Cormorant',serif;font-size:13px;font-weight:500;
+  color:rgba(255,255,255,0.4);letter-spacing:0.1em;text-transform:uppercase;
+  margin-bottom:1.5rem;text-align:center;
+}
+.compare-row{
+  display:grid;grid-template-columns:1fr 1fr;gap:1px;
+  background:rgba(255,255,255,0.06);border-radius:4px;overflow:hidden;
+  margin-bottom:1px;
+}
+.compare-head{
+  padding:10px 14px;
+  font-size:10px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;
+  text-align:center;
+}
+.compare-cell{
+  padding:12px 14px;
+  font-size:13px;
+  background:rgba(255,255,255,0.02);
+  font-weight:300;
+  display:flex;align-items:center;gap:8px;
+}
+.compare-cell.before{color:rgba(255,255,255,0.45)}
+.compare-cell.after{color:rgba(201,168,76,0.9)}
+.compare-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+.c-red{background:#C0392B}.c-gold{background:var(--gold)}
+
+/* ========= SOLUTION ========= */
+.solution{padding:9rem 4rem;background:var(--white)}
+.solution-header{text-align:center;max-width:700px;margin:0 auto 5rem}
+.features-grid{
+  display:grid;grid-template-columns:repeat(3,1fr);
+  gap:2px;background:var(--border);
+  border:1px solid var(--border);border-radius:4px;overflow:hidden;
+}
+.feat{
+  background:var(--white);padding:2.5rem;
+  transition:all 0.3s;position:relative;
+}
+.feat::after{
+  content:'';position:absolute;top:0;left:0;right:0;height:2px;
+  background:var(--gold);transform:scaleX(0);transform-origin:left;transition:transform 0.3s;
+}
+.feat:hover::after{transform:scaleX(1)}
+.feat:hover{background:var(--cream)}
+.feat-num{
+  font-family:'Cormorant',serif;
+  font-size:11px;font-weight:500;
+  color:var(--text3);letter-spacing:0.1em;
+  margin-bottom:1.25rem;
+}
+.feat-icon{
+  width:44px;height:44px;border-radius:3px;
+  background:var(--cream2);
+  display:flex;align-items:center;justify-content:center;
+  font-size:20px;margin-bottom:1.25rem;
+}
+.feat-title{font-size:17px;font-weight:500;color:var(--ink);margin-bottom:0.75rem;letter-spacing:-0.01em}
+.feat-desc{font-size:13.5px;color:var(--text2);line-height:1.7;font-weight:300}
+
+/* ========= WORKFLOW ========= */
+.workflow{
+  padding:9rem 4rem;
+  background:var(--ink);
+}
+.workflow-inner{max-width:1100px;margin:0 auto}
+.workflow-header{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:5rem;flex-wrap:wrap;gap:2rem}
+.workflow-header .section-title{color:var(--white);max-width:500px}
+.workflow-header .section-body{color:rgba(255,255,255,0.45);max-width:340px;font-size:15px;margin-bottom:0}
+.workflow-steps{
+  display:grid;grid-template-columns:repeat(4,1fr);
+  gap:1px;background:rgba(255,255,255,0.06);
+  border-radius:4px;overflow:hidden;
+}
+.wf-step{
+  padding:2.5rem 2rem;
+  background:var(--ink2);
+  position:relative;transition:background 0.3s;
+}
+.wf-step:hover{background:#162232}
+.wf-step::after{
+  content:'→';
+  position:absolute;right:-1px;top:50%;transform:translateY(-50%);
+  color:rgba(201,168,76,0.3);font-size:20px;z-index:2;
+}
+.wf-step:last-child::after{display:none}
+.wf-num{
+  font-family:'Cormorant',serif;
+  font-size:48px;font-weight:300;
+  color:rgba(201,168,76,0.15);
+  line-height:1;margin-bottom:1.25rem;
+}
+.wf-title{font-size:15px;font-weight:500;color:var(--white);margin-bottom:8px}
+.wf-desc{font-size:13px;color:rgba(255,255,255,0.4);line-height:1.6;font-weight:300}
+.wf-time{
+  display:inline-block;margin-top:1rem;
+  font-size:11px;font-weight:500;
+  color:var(--gold);letter-spacing:0.06em;
+  border:1px solid rgba(201,168,76,0.25);
+  padding:3px 10px;border-radius:2px;
+}
+
+/* ========= USE CASES ========= */
+.usecases{padding:9rem 4rem;background:var(--cream)}
+.usecases-inner{max-width:1100px;margin:0 auto}
+.usecases-header{margin-bottom:4rem}
+.usecases-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:1.5rem}
+.uc-card{
+  background:var(--white);
+  border:1px solid var(--border);border-radius:4px;
+  padding:2.5rem;display:flex;flex-direction:column;
+  transition:all 0.3s;
+}
+.uc-card:hover{border-color:var(--gold);box-shadow:0 8px 40px rgba(201,168,76,0.08);transform:translateY(-3px)}
+.uc-header{display:flex;gap:1rem;align-items:flex-start;margin-bottom:1.25rem}
+.uc-icon{
+  width:48px;height:48px;border-radius:3px;
+  background:var(--ink);
+  display:flex;align-items:center;justify-content:center;
+  font-size:22px;flex-shrink:0;
+}
+.uc-label{font-size:10px;font-weight:600;color:var(--text3);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:4px}
+.uc-title{font-family:'Cormorant',serif;font-size:20px;font-weight:600;color:var(--ink);letter-spacing:-0.01em}
+.uc-desc{font-size:14px;color:var(--text2);line-height:1.7;font-weight:300;margin-bottom:1.5rem;flex:1}
+.uc-features{display:flex;flex-direction:column;gap:6px}
+.uc-feat{display:flex;gap:8px;align-items:center;font-size:13px;color:var(--text);font-weight:300}
+.uc-feat::before{content:'';width:4px;height:4px;border-radius:50%;background:var(--gold);flex-shrink:0}
+
+/* ========= IMPACT ========= */
+.impact{padding:9rem 4rem;background:var(--ink)}
+.impact-inner{max-width:1100px;margin:0 auto}
+.impact-header{text-align:center;margin-bottom:5rem}
+.impact-header .section-title{color:var(--white)}
+.impact-header .section-body{color:rgba(255,255,255,0.45);max-width:560px;margin:0 auto}
+.impact-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:2px;background:rgba(255,255,255,0.06);border-radius:4px;overflow:hidden}
+.impact-card{
+  background:var(--ink2);
+  padding:3rem 2.5rem;text-align:center;
+  transition:background 0.3s;
+}
+.impact-card:hover{background:#162232}
+.impact-val{
+  font-family:'Cormorant',serif;
+  font-size:64px;font-weight:600;
+  color:var(--gold2);line-height:1;
+  margin-bottom:0.5rem;
+}
+.impact-unit{font-size:20px}
+.impact-title{font-size:15px;font-weight:500;color:var(--white);margin-bottom:8px}
+.impact-desc{font-size:13px;color:rgba(255,255,255,0.4);line-height:1.6;font-weight:300}
+
+/* ========= PRICING ========= */
+.pricing{padding:9rem 4rem;background:var(--cream2)}
+.pricing-inner{max-width:1000px;margin:0 auto}
+.pricing-header{text-align:center;margin-bottom:4.5rem}
+.pricing-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1.5rem}
+.price-card{
+  background:var(--white);border:1px solid var(--border);
+  border-radius:4px;padding:2.5rem;
+  position:relative;transition:all 0.3s;
+}
+.price-card:hover{border-color:var(--border2);box-shadow:0 8px 40px rgba(0,0,0,0.06)}
+.price-card.featured{background:var(--ink);border-color:var(--ink);transform:translateY(-6px);box-shadow:0 20px 60px rgba(8,17,30,0.2)}
+.price-badge{
+  position:absolute;top:-12px;left:50%;transform:translateX(-50%);
+  background:var(--gold);color:var(--ink);
+  font-size:10px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;
+  padding:4px 14px;border-radius:2px;white-space:nowrap;
+}
+.price-plan{font-size:10px;font-weight:600;color:var(--text3);letter-spacing:0.12em;text-transform:uppercase;margin-bottom:1.5rem}
+.featured .price-plan{color:rgba(255,255,255,0.4)}
+.price-amount{font-family:'Cormorant',serif;font-size:52px;font-weight:600;color:var(--ink);line-height:1}
+.featured .price-amount{color:var(--gold2)}
+.price-per{font-size:13px;color:var(--text3);margin-bottom:2rem}
+.featured .price-per{color:rgba(255,255,255,0.35)}
+.price-div{height:1px;background:var(--border);margin-bottom:1.5rem}
+.featured .price-div{background:rgba(255,255,255,0.1)}
+.price-list{list-style:none;margin-bottom:2rem}
+.price-list li{font-size:13px;color:var(--text);padding:7px 0;display:flex;gap:10px;align-items:center;font-weight:300;border-bottom:1px solid var(--cream2)}
+.price-list li:last-child{border-bottom:none}
+.price-list li::before{content:'';width:4px;height:4px;border-radius:50%;background:var(--gold);flex-shrink:0}
+.featured .price-list li{color:rgba(255,255,255,0.7);border-color:rgba(255,255,255,0.06)}
+.btn-price{
+  display:block;text-align:center;
+  padding:13px;border-radius:3px;font-size:14px;font-weight:500;
+  text-decoration:none;letter-spacing:0.02em;transition:all 0.2s;
+  border:1px solid var(--border);color:var(--text);
+}
+.btn-price:hover{border-color:var(--ink);color:var(--ink)}
+.featured .btn-price{background:var(--gold);color:var(--ink);border-color:var(--gold)}
+.featured .btn-price:hover{background:var(--gold2)}
+
+/* ========= CTA ========= */
+.cta-section{
+  padding:10rem 4rem;
+  background:var(--ink);
+  text-align:center;
+  position:relative;overflow:hidden;
+}
+.cta-section::before{
+  content:'';position:absolute;
+  top:50%;left:50%;transform:translate(-50%,-50%);
+  width:800px;height:800px;
+  background:radial-gradient(circle,rgba(201,168,76,0.07) 0%,transparent 65%);
+  pointer-events:none;
+}
+.cta-section::after{
+  content:'';position:absolute;
+  top:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(201,168,76,0.4),transparent);
+}
+.cta-tag{font-size:10px;font-weight:500;color:var(--gold);letter-spacing:0.16em;text-transform:uppercase;margin-bottom:2rem}
+.cta-title{
+  font-family:'Cormorant',serif;
+  font-size:clamp(40px,6vw,72px);font-weight:300;
+  color:var(--white);letter-spacing:-0.02em;
+  line-height:1.06;margin-bottom:1.5rem;
+}
+.cta-title em{font-style:italic;color:var(--gold2);font-weight:300}
+.cta-sub{font-size:17px;color:rgba(255,255,255,0.45);font-weight:300;line-height:1.75;max-width:520px;margin:0 auto 3.5rem}
+.cta-note{font-size:12px;color:rgba(255,255,255,0.25);margin-top:1.5rem;letter-spacing:0.04em}
+
+/* ========= FOOTER ========= */
+footer{
+  background:rgba(0,0,0,0.4);
+  border-top:1px solid rgba(255,255,255,0.06);
+  padding:3rem 4rem;
+  display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1.5rem;
+}
+.foot-logo{font-family:'Cormorant',serif;font-size:20px;font-weight:500;color:var(--gold);letter-spacing:0.06em}
+.foot-links{display:flex;gap:2rem;flex-wrap:wrap}
+.foot-links a{font-size:12px;color:rgba(255,255,255,0.3);text-decoration:none;letter-spacing:0.04em;transition:color 0.2s}
+.foot-links a:hover{color:rgba(255,255,255,0.7)}
+.foot-copy{font-size:11px;color:rgba(255,255,255,0.2);letter-spacing:0.04em}
+
+/* ========= ANIMATIONS ========= */
+.reveal{opacity:0;transform:translateY(28px);transition:opacity 0.7s,transform 0.7s cubic-bezier(0.16,1,0.3,1)}
+.reveal.in{opacity:1;transform:translateY(0)}
+.reveal-delay-1{transition-delay:0.1s}
+.reveal-delay-2{transition-delay:0.2s}
+.reveal-delay-3{transition-delay:0.3s}
+
+@media(max-width:960px){
+  nav{padding:0 1.5rem}.nav-center{display:none}
+  .hero{padding:100px 2rem 60px}
+  .hero-stats{flex-direction:column}
+  .problem{grid-template-columns:1fr;padding:5rem 2rem}
+  .solution{padding:5rem 2rem}.features-grid{grid-template-columns:1fr 1fr}
+  .workflow{padding:5rem 2rem}.workflow-steps{grid-template-columns:1fr 1fr}
+  .usecases{padding:5rem 2rem}.usecases-grid{grid-template-columns:1fr}
+  .impact{padding:5rem 2rem}.impact-grid{grid-template-columns:1fr}
+  .pricing{padding:5rem 2rem}.pricing-grid{grid-template-columns:1fr}.price-card.featured{transform:none}
+  .cta-section{padding:6rem 2rem}
+  footer{padding:2rem;flex-direction:column}
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="logo">LexAI <span class="logo-badge">Jogi AI Asszisztens</span></div>
+  <div class="nav-center">
+    <a href="#problem">Miért LexAI</a>
+    <a href="#solution">Funkciók</a>
+    <a href="#usecases">Felhasználók</a>
+    <a href="#pricing">Árak</a>
+  </div>
+  <div class="nav-right">
+    <a href="auth.html" class="nav-link">Bejelentkezés</a>
+    <a href="auth.html" class="nav-cta">Ingyenes demo →</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-line"></div>
+  <div class="hero-content">
+    <div class="hero-eyebrow">
+      <span class="hero-eyebrow-dot"></span>
+      Magyar jog · PTK alapján · Mesterséges intelligencia
+    </div>
+    <h1>
+      A jogi AI asszisztens,<br>
+      amely <em>80%-kal gyorsítja</em><br>
+      <strong>munkafolyamatait</strong>
+    </h1>
+    <p class="hero-sub">
+      A LexAI nem helyettesíti a jogászt – <em>megsokszorozza a kapacitását.</em><br>
+      Elemezzen több szerződést, írjon minőségi dokumentumokat és fókuszáljon a valóban fontos munkára.
+    </p>
+    <div class="hero-actions">
+      <a href="auth.html" class="btn-hero">Kezdje el ingyenesen →</a>
+      <a href="#solution" class="btn-hero-ghost">Fedezze fel a funkciókat</a>
+    </div>
+    <div class="hero-stats">
+      <div class="stat">
+        <div class="stat-val">80%</div>
+        <div class="stat-label">Időmegtakarítás</div>
+      </div>
+      <div class="stat">
+        <div class="stat-val">30mp</div>
+        <div class="stat-label">Egy szerződés elemzése</div>
+      </div>
+      <div class="stat">
+        <div class="stat-val">PTK</div>
+        <div class="stat-label">Magyar jog alapján</div>
+      </div>
+      <div class="stat">
+        <div class="stat-val">16+</div>
+        <div class="stat-label">Szerződéstípus</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- MARQUEE -->
+<div class="marquee-wrap">
+  <div class="marquee-track">
+    <span>Szerződéselemzés</span>
+    <span>Kockázatelemzés</span>
+    <span>Dokumentumgenerálás</span>
+    <span>PTK alapján</span>
+    <span>Javítási javaslatok</span>
+    <span>PDF export</span>
+    <span>Word feltöltés</span>
+    <span>Munkaszerződés</span>
+    <span>Bérleti szerződés</span>
+    <span>Vállalkozási szerződés</span>
+    <span>NDA</span>
+    <span>Adásvételi szerződés</span>
+    <span>Szerződéselemzés</span>
+    <span>Kockázatelemzés</span>
+    <span>Dokumentumgenerálás</span>
+    <span>PTK alapján</span>
+    <span>Javítási javaslatok</span>
+    <span>PDF export</span>
+    <span>Word feltöltés</span>
+    <span>Munkaszerződés</span>
+    <span>Bérleti szerződés</span>
+    <span>Vállalkozási szerződés</span>
+    <span>NDA</span>
+    <span>Adásvételi szerződés</span>
+  </div>
+</div>
+
+<!-- PROBLEM -->
+<section class="problem" id="problem">
+  <div class="problem-left">
+    <div class="problem-tag reveal">A valóság</div>
+    <div class="section-title reveal">A jogi munka <em>80%-a rutinfeladat</em></div>
+    <div class="section-body reveal">Minden jogász és jogi osztály naponta szembesül ugyanazokkal az ismétlődő, időigényes feladatokkal. Ezek nem igényelnek kreativitást – de rengeteg időt emésztenek fel.</div>
+    <div class="problem-items">
+      <div class="prob-item reveal">
+        <div class="prob-item-icon">⏳</div>
+        <div>
+          <div class="prob-item-title">Órákon át tartó szerződésolvasás</div>
+          <div class="prob-item-desc">Egy összetett szerződés átvizsgálása 2-4 órát vesz igénybe. Naponta több ilyen dokumentum kerülhet az asztalra.</div>
+        </div>
+      </div>
+      <div class="prob-item reveal">
+        <div class="prob-item-icon">🔄</div>
+        <div>
+          <div class="prob-item-title">Ismétlődő dokumentumkészítés</div>
+          <div class="prob-item-desc">Hasonló szerződések újra és újra nulláról írva, manuálisan – felesleges energiával és hibalehetőségekkel.</div>
+        </div>
+      </div>
+      <div class="prob-item reveal">
+        <div class="prob-item-icon">🔍</div>
+        <div>
+          <div class="prob-item-title">Nehézkes kockázatazonosítás</div>
+          <div class="prob-item-desc">A kritikus pontok megtalálása hosszú dokumentumokban koncentrált figyelmet és időt igényel.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="problem-right reveal">
+    <div class="comparison-title">LexAI nélkül vs. LexAI-jal</div>
+    <div style="display:flex;flex-direction:column;gap:1px">
+      <div class="compare-row">
+        <div class="compare-head" style="color:rgba(255,255,255,0.35);background:rgba(255,255,255,0.03)">Hagyományos munkamód</div>
+        <div class="compare-head" style="color:var(--gold);background:rgba(201,168,76,0.06)">LexAI-jal</div>
+      </div>
+      <div class="compare-row">
+        <div class="compare-cell before"><div class="compare-dot c-red"></div>Szerződéselemzés: 3-4 óra</div>
+        <div class="compare-cell after"><div class="compare-dot c-gold"></div>Szerződéselemzés: 30 másodperc</div>
+      </div>
+      <div class="compare-row">
+        <div class="compare-cell before"><div class="compare-dot c-red"></div>Szerződésírás: 1-2 nap</div>
+        <div class="compare-cell after"><div class="compare-dot c-gold"></div>Szerződésírás: 5 perc</div>
+      </div>
+      <div class="compare-row">
+        <div class="compare-cell before"><div class="compare-dot c-red"></div>Kockázatok: manuális keresés</div>
+        <div class="compare-cell after"><div class="compare-dot c-gold"></div>Kockázatok: automatikus, PTK alapján</div>
+      </div>
+      <div class="compare-row">
+        <div class="compare-cell before"><div class="compare-dot c-red"></div>Javítási javaslatok: nincs</div>
+        <div class="compare-cell after"><div class="compare-dot c-gold"></div>Konkrét szövegjavítások azonnal</div>
+      </div>
+      <div class="compare-row">
+        <div class="compare-cell before"><div class="compare-dot c-red"></div>Párhuzamos ügyek: korlátozott</div>
+        <div class="compare-cell after"><div class="compare-dot c-gold"></div>Párhuzamos ügyek: korlátlan</div>
+      </div>
+      <div class="compare-row">
+        <div class="compare-cell before"><div class="compare-dot c-red"></div>Kapacitás: maximum 8-10 ügy/nap</div>
+        <div class="compare-cell after"><div class="compare-dot c-gold"></div>Kapacitás: 3-5x több ügy naponta</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SOLUTION -->
+<section class="solution" id="solution">
+  <div class="solution-header">
+    <div class="problem-tag reveal">Funkciók</div>
+    <div class="section-title reveal">Minden ami a hatékony<br>jogi munkához kell</div>
+    <div class="section-body reveal" style="text-align:center;max-width:580px;margin:0 auto">A LexAI hat kulcsfunkciója lefedi a napi jogi dokumentáció teljes spektrumát – az elemzéstől a generálásig.</div>
+  </div>
+  <div class="features-grid">
+    <div class="feat reveal">
+      <div class="feat-num">01 / 06</div>
+      <div class="feat-icon">⚡</div>
+      <div class="feat-title">Azonnali szerződéselemzés</div>
+      <div class="feat-desc">Töltse fel a dokumentumot – PDF, Word vagy szöveg – és 30 másodpercen belül teljes elemzést kap a kockázatokról, hiányosságokról és problémákról.</div>
+    </div>
+    <div class="feat reveal reveal-delay-1">
+      <div class="feat-num">02 / 06</div>
+      <div class="feat-icon">🎯</div>
+      <div class="feat-title">Kockázatazonosítás PTK alapján</div>
+      <div class="feat-desc">Az AI a Polgári Törvénykönyv és egyéb magyar jogszabályok alapján azonosítja a veszélyes klauzulákat, hivatkozva a releváns paragrafusokra.</div>
+    </div>
+    <div class="feat reveal reveal-delay-2">
+      <div class="feat-num">03 / 06</div>
+      <div class="feat-icon">✍️</div>
+      <div class="feat-title">Konkrét javítási javaslatok</div>
+      <div class="feat-desc">Nem csak megmutatja a hibát – konkrét, beilleszthető szövegjavaslatot ad minden problémás pontra. Azonnali, alkalmazható megoldások.</div>
+    </div>
+    <div class="feat reveal">
+      <div class="feat-num">04 / 06</div>
+      <div class="feat-icon">📝</div>
+      <div class="feat-title">Dokumentumgenerálás</div>
+      <div class="feat-desc">16+ szerződéstípus, tetszőleges részletességgel. Standard, részletes vagy komplex vállalati szintű dokumentumok percek alatt, PTK-konform formában.</div>
+    </div>
+    <div class="feat reveal reveal-delay-1">
+      <div class="feat-num">05 / 06</div>
+      <div class="feat-icon">🔄</div>
+      <div class="feat-title">Automatikus javítás és újragenerálás</div>
+      <div class="feat-desc">Az elemzés után egy kattintással újraírja a szerződést a feltárt hibák javításával. Megadhat további szempontokat és meghatározhatja melyik fél érdekeit védje.</div>
+    </div>
+    <div class="feat reveal reveal-delay-2">
+      <div class="feat-num">06 / 06</div>
+      <div class="feat-icon">📊</div>
+      <div class="feat-title">Professzionális PDF jelentés</div>
+      <div class="feat-desc">Az elemzés eredménye letölthető, nyomtatható PDF dokumentumban. Fejléccel, logóval, táblázatokkal – készen az ügyfél számára.</div>
+    </div>
+  </div>
+</section>
+
+<!-- WORKFLOW -->
+<section class="workflow" id="workflow">
+  <div class="workflow-inner">
+    <div class="workflow-header">
+      <div>
+        <div class="problem-tag" style="color:var(--gold)">Munkafolyamat</div>
+        <div class="section-title" style="color:var(--white)">Négy lépés,<br>néhány perc</div>
+      </div>
+      <div class="section-body" style="color:rgba(255,255,255,0.4);max-width:340px;margin-bottom:0">Az intuitív felület nem igényel betanulást. Az első elemzés az indulástól számított perceken belül elkészül.</div>
+    </div>
+    <div class="workflow-steps">
+      <div class="wf-step reveal">
+        <div class="wf-num">01</div>
+        <div class="wf-title">Dokumentum feltöltése</div>
+        <div class="wf-desc">PDF, Word (.docx), RTF vagy egyszerű szöveg – a rendszer automatikusan felismeri és feldolgozza a formátumot.</div>
+        <div class="wf-time">~10 másodperc</div>
+      </div>
+      <div class="wf-step reveal reveal-delay-1">
+        <div class="wf-num">02</div>
+        <div class="wf-title">AI elemzés futtatása</div>
+        <div class="wf-desc">A rendszer PTK alapján végigmegy a dokumentum minden pontján. Hosszú szerződéseknél is teljes lefedettség.</div>
+        <div class="wf-time">~20-30 másodperc</div>
+      </div>
+      <div class="wf-step reveal reveal-delay-2">
+        <div class="wf-num">03</div>
+        <div class="wf-title">Eredmények áttekintése</div>
+        <div class="wf-desc">Kockázati pontszám, azonosított problémák, konkrét javítási javaslatok – strukturált, áttekinthető formában.</div>
+        <div class="wf-time">~5 perc</div>
+      </div>
+      <div class="wf-step reveal reveal-delay-3">
+        <div class="wf-num">04</div>
+        <div class="wf-title">Export és felhasználás</div>
+        <div class="wf-desc">PDF jelentés letöltése, javított szerződés generálása, vagy az eredmények közvetlen felhasználása az ügyfélmunkában.</div>
+        <div class="wf-time">~1 perc</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- USE CASES -->
+<section class="usecases" id="usecases">
+  <div class="usecases-inner">
+    <div class="usecases-header">
+      <div class="problem-tag reveal">Kinek való</div>
+      <div class="section-title reveal">Tervezve azoknak, akik<br>jogi dokumentumokkal dolgoznak</div>
+      <div class="section-body reveal" style="max-width:560px">A LexAI minden olyan szakember és szervezet számára hasznos, ahol a szerződéses dokumentáció napi rutinfeladatot jelent.</div>
+    </div>
+    <div class="usecases-grid">
+      <div class="uc-card reveal">
+        <div class="uc-header">
+          <div class="uc-icon">⚖️</div>
+          <div>
+            <div class="uc-label">Felhasználói kör</div>
+            <div class="uc-title">Ügyvédi irodák</div>
+          </div>
+        </div>
+        <div class="uc-desc">Az ügyvédek idejének nagy részét az ismétlődő szerződéses munka foglalja el. A LexAI lehetővé teszi, hogy az irodák több ügyet kezeljenek ugyanannyi erőforrással, magasabb minőségen.</div>
+        <div class="uc-features">
+          <div class="uc-feat">Szerződések előszűrése és kockázatértékelése percek alatt</div>
+          <div class="uc-feat">Standardizált dokumentumsablonok gyors generálása</div>
+          <div class="uc-feat">Ügyfélnek átadható PDF elemzési jelentések</div>
+          <div class="uc-feat">3-5x több ügy kezelése ugyanannyi idő alatt</div>
+        </div>
+      </div>
+      <div class="uc-card reveal reveal-delay-1">
+        <div class="uc-header">
+          <div class="uc-icon">🏢</div>
+          <div>
+            <div class="uc-label">Felhasználói kör</div>
+            <div class="uc-title">Vállalati jogi osztályok</div>
+          </div>
+        </div>
+        <div class="uc-desc">A corporate legal teamek naponta szembesülnek szerződések tömegével. A LexAI átvilágítja a beérkező dokumentumokat és jelzi a kritikus pontokat, mielőtt jogász kézbeveszi.</div>
+        <div class="uc-features">
+          <div class="uc-feat">Beszállítói és partneri szerződések automatikus átvizsgálása</div>
+          <div class="uc-feat">Munkajogi dokumentumok PTK-konform generálása</div>
+          <div class="uc-feat">Kockázati pontszám alapján prioritizált ügykezelés</div>
+          <div class="uc-feat">Integrálható a meglévő jogi munkamenetbe</div>
+        </div>
+      </div>
+      <div class="uc-card reveal">
+        <div class="uc-header">
+          <div class="uc-icon">🏦</div>
+          <div>
+            <div class="uc-label">Felhasználói kör</div>
+            <div class="uc-title">Pénzügyi és ingatlanszektor</div>
+          </div>
+        </div>
+        <div class="uc-desc">Bankok, befektetési társaságok és ingatlanforgalmazók napi szinten kezelnek komplex szerződéseket. A LexAI gyorsítja az átvilágítást és csökkenti a jogi kockázatot.</div>
+        <div class="uc-features">
+          <div class="uc-feat">Hitelszerződések és zálogdokumentumok elemzése</div>
+          <div class="uc-feat">Ingatlan adásvételi és bérleti szerződések</div>
+          <div class="uc-feat">Due diligence folyamatok gyorsítása</div>
+          <div class="uc-feat">Hiányosságok és kockázatok azonnali jelzése</div>
+        </div>
+      </div>
+      <div class="uc-card reveal reveal-delay-1">
+        <div class="uc-header">
+          <div class="uc-icon">🚀</div>
+          <div>
+            <div class="uc-label">Felhasználói kör</div>
+            <div class="uc-title">Növekvő vállalkozások</div>
+          </div>
+        </div>
+        <div class="uc-desc">A scale-up fázisban lévő cégek rengeteg szerződést kötnek, miközben a jogi kapacitásuk korlátozott. A LexAI lehetővé teszi, hogy a jogi munka ne legyen szűk keresztmetszet.</div>
+        <div class="uc-features">
+          <div class="uc-feat">Gyors szerződésgenerálás tárgyalások előtt</div>
+          <div class="uc-feat">Beérkező szerződések gyors kockázatértékelése</div>
+          <div class="uc-feat">Franchise, licencia és ügynöki megállapodások</div>
+          <div class="uc-feat">Jogi költségek csökkentése rutinfeladatoknál</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- IMPACT -->
+<section class="impact">
+  <div class="impact-inner">
+    <div class="impact-header">
+      <div class="problem-tag" style="color:var(--gold)">Mérhető eredmények</div>
+      <div class="section-title" style="color:var(--white)">A számok magukért beszélnek</div>
+      <div class="section-body">A LexAI bevezetése mérhető javulást hoz a jogi csapatok teljesítményében és a dokumentációs munka hatékonyságában.</div>
+    </div>
+    <div class="impact-grid">
+      <div class="impact-card reveal">
+        <div class="impact-val">80<span class="impact-unit">%</span></div>
+        <div class="impact-title">Időmegtakarítás</div>
+        <div class="impact-desc">Átlagosan 80%-kal csökken a szerződéses dokumentáció elkészítéséhez szükséges idő a hagyományos módszerhez képest.</div>
+      </div>
+      <div class="impact-card reveal reveal-delay-1">
+        <div class="impact-val">3<span class="impact-unit">×</span></div>
+        <div class="impact-title">Több ügy kapacitás</div>
+        <div class="impact-desc">Ugyanannyi jogi szakember ugyanannyi idő alatt háromszor annyi ügyet tud kezelni, anélkül hogy a minőség csökkenne.</div>
+      </div>
+      <div class="impact-card reveal reveal-delay-2">
+        <div class="impact-val">30<span class="impact-unit">mp</span></div>
+        <div class="impact-title">Elemzési idő</div>
+        <div class="impact-desc">Egy teljes szerződés átvilágítása – kockázatokkal, javítási javaslatokkal és összefoglalóval – mindössze 30 másodpercet vesz igénybe.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PRICING -->
+<section class="pricing" id="pricing">
+  <div class="pricing-inner">
+    <div class="pricing-header">
+      <div class="problem-tag reveal">Árazás</div>
+      <div class="section-title reveal">Átlátható, skálázható árazás</div>
+      <div class="section-body reveal" style="text-align:center">Nincs rejtett díj. Nincs hosszú elköteleződés. Bármikor lemondható.</div>
+    </div>
+    <div class="pricing-grid">
+      <div class="price-card reveal">
+        <div class="price-plan">Starter</div>
+        <div class="price-amount">9 900</div>
+        <div class="price-per">Ft / hónap + ÁFA</div>
+        <div class="price-div"></div>
+        <ul class="price-list">
+          <li>10 dokumentumelemzés / hó</li>
+          <li>Kockázatelemzés PTK alapján</li>
+          <li>Konkrét javítási javaslatok</li>
+          <li>PDF / Word feltöltés</li>
+          <li>Letölthető PDF jelentés</li>
+        </ul>
+        <a href="auth.html" class="btn-price">Kipróbálom</a>
+      </div>
+      <div class="price-card featured reveal reveal-delay-1">
+        <div class="price-badge">Legkedveltebb</div>
+        <div class="price-plan">Pro</div>
+        <div class="price-amount">24 900</div>
+        <div class="price-per">Ft / hónap + ÁFA</div>
+        <div class="price-div"></div>
+        <ul class="price-list">
+          <li>50 dokumentumelemzés / hó</li>
+          <li>Szerződésgenerálás (16+ típus)</li>
+          <li>Automatikus újragenerálás</li>
+          <li>AI javítási javaslatok</li>
+          <li>Professzionális PDF jelentés</li>
+          <li>Prioritás email támogatás</li>
+        </ul>
+        <a href="auth.html" class="btn-price">Kipróbálom</a>
+      </div>
+      <div class="price-card reveal reveal-delay-2">
+        <div class="price-plan">Iroda / Vállalat</div>
+        <div class="price-amount">59 900</div>
+        <div class="price-per">Ft / hónap + ÁFA</div>
+        <div class="price-div"></div>
+        <ul class="price-list">
+          <li>Korlátlan dokumentumelemzés</li>
+          <li>Korlátlan generálás</li>
+          <li>5 felhasználói fiók</li>
+          <li>Egyedi szerződéssablonok</li>
+          <li>Dedikált ügyfélszolgálat</li>
+          <li>Onboarding és betanítás</li>
+        </ul>
+        <a href="auth.html" class="btn-price">Kapcsolatfelvétel</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta-section">
+  <div class="cta-tag">Kezdje el most</div>
+  <div class="cta-title">
+    Tapasztalja meg a különbséget<br>
+    <em>az első 30 másodpercben</em>
+  </div>
+  <div class="cta-sub">
+    Töltsön fel egy szerződést és nézze meg hogyan azonosítja a LexAI a kockázatokat – regisztráció és bankkártya nélkül.
+  </div>
+  <a href="auth.html" class="btn-hero" style="font-size:16px;padding:18px 44px">Ingyenes demo indítása →</a>
+  <div class="cta-note">Nincs elköteleződés · Azonnali hozzáférés · Magyar ügyfélszolgálat</div>
+</section>
+
+<!-- FOOTER -->
+<footer style="background:var(--ink)">
+  <div class="foot-logo">LexAI</div>
+  <div class="foot-links">
+    <a href="app.html">Alkalmazás</a>
+    <a href="#pricing">Árak</a>
+    <a href="#">ÁSZF</a>
+    <a href="#">Adatvédelmi nyilatkozat</a>
+    <a href="#">Kapcsolat</a>
+  </div>
+  <div class="foot-copy">© 2025 LexAI · Nem minősül jogi tanácsadásnak</div>
+</footer>
+
+<script>
+var obs=new IntersectionObserver(function(entries){
+  entries.forEach(function(e){if(e.isIntersecting)e.target.classList.add('in');});
+},{threshold:0.08});
+document.querySelectorAll('.reveal').forEach(function(el){obs.observe(el);});
+</script>
+</body>
+</html>
