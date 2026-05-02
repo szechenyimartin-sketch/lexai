@@ -1723,7 +1723,7 @@ function printContract(text){
     bodyHtml+
     '<button class="print-btn" onclick="window.print()">Nyomtatás / PDF mentés</button>'+
     '<div class="footer">LexAI – Kizárólag tájékoztatási céllal. Nem minősül jogi tanácsadásnak. © '+new Date().getFullYear()+' LexAI</div>'+
-    '</div></body></html>';
+    '</div><script src="results.js"></script></body></html>';
   
   var w=window.open('','_blank');
   w.document.write(html);
