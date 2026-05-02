@@ -1060,7 +1060,7 @@ var API_BASE='https://lexai-production-3568.up.railway.app/api';
 
 async function callBackend(endpoint, data){
   var controller=new AbortController();
-  var timeout=setTimeout(function(){controller.abort();},120000); // 2 perc
+  var timeout=setTimeout(function(){controller.abort();},300000); // 5 perc // 2 perc
   try{
     var r=await fetch(API_BASE+'/'+endpoint,{
       method:'POST',
