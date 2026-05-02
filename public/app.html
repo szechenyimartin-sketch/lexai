@@ -131,7 +131,7 @@ textarea::placeholder{color:var(--text3)}
 
 /* RISK */
 .risk-item{display:flex;gap:12px;padding:14px 16px;border-radius:5px;margin-bottom:8px;align-items:flex-start;border:1px solid;cursor:default;transition:transform 0.15s}
-.risk-item:hover{transform:translateX(3px)}
+.risk-item:hover{transform:translateX(0px)}.deep-issue{cursor:pointer}.deep-issue-body{display:none;margin-top:10px}.deep-issue.open .deep-issue-body{display:block}
 .risk-item.high{background:var(--red-bg);border-color:var(--red-border)}
 .risk-item.med{background:var(--orange-bg);border-color:var(--orange-border)}
 .risk-item.low{background:var(--green-bg);border-color:var(--green-border)}
@@ -1350,7 +1350,7 @@ function renderResult(r){
       var cls=sev==='kritikus'?'critical':sev==='figyelmeztetés'?'warning':'info';
       var sevC=sev==='kritikus'?'var(--red)':sev==='figyelmeztetés'?'var(--orange)':'var(--blue)';
       var sevL=sev==='kritikus'?'KRITIKUS':sev==='figyelmeztetés'?'FIGYELMEZTETÉS':'INFO';
-      return '<div class="deep-issue '+cls+'">'+
+      return '<div class="deep-issue '+cls+'" onclick="this.classList.toggle(\'open\')">'+
         '<div style="display:flex;align-items:flex-start;gap:10px;margin-bottom:8px">'+
         '<div style="flex:1"><div class="deep-issue-title">'+issue.title+'</div>'+
         (issue.location?'<div class="deep-issue-loc">Helye: '+issue.location+(issue.legal_ref?' · '+issue.legal_ref:'')+'</div>':issue.legal_ref?'<div class="deep-issue-loc">'+issue.legal_ref+'</div>':'')+
