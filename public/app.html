@@ -1356,9 +1356,9 @@ function renderResult(r){
         (issue.location?'<div class="deep-issue-loc">Helye: '+issue.location+(issue.legal_ref?' · '+issue.legal_ref:'')+'</div>':issue.legal_ref?'<div class="deep-issue-loc">'+issue.legal_ref+'</div>':'')+
         '</div><span style="font-size:10px;font-weight:700;padding:3px 9px;border-radius:10px;background:'+sevC+';color:white;white-space:nowrap;flex-shrink:0">'+sevL+'</span></div>'+
         (issue.original_text?'<div class="deep-original">Eredeti: '+issue.original_text+'</div>':'')+
-        '<div class="deep-issue-desc">'+issue.description+'</div>'+
+        '<div class="deep-issue-body"><div class="deep-issue-desc">'+issue.description+'</div>'+
         (issue.fix_text?'<div class="deep-fix-box"><div class="deep-fix-label">Javasolt megoldás</div><div class="deep-fix-text">'+issue.fix_text+'</div>'+(issue.fix_reason?'<div style="font-size:11px;color:var(--text3);margin-top:5px;font-style:italic">'+issue.fix_reason+'</div>':'')+  '</div>':'')+
-        '</div>';
+        '</div></div>';
     }).join('');
   }else if(r.fixes&&r.fixes.length){
     fixesHtml=r.fixes.map(function(f,i){
