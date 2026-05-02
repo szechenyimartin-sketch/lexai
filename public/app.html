@@ -1263,6 +1263,12 @@ async function doAnalyze(){
     if(progVal===80)document.getElementById('load-title').textContent='4/4 Ügyvédi összefoglaló...';
   },1500);
 
+  // Szerver ébresztése (Railway ingyenes csomagban elalszik)
+  try{
+    await fetch('https://lexai-production-3568.up.railway.app/').catch(function(){});
+  }catch(e){}
+  await new Promise(function(res){setTimeout(res,2000);}); // 2mp várakozás
+
   try{
     var result=await callBackend('analyze',{
       text:text,
