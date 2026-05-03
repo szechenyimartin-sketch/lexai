@@ -143,30 +143,25 @@ function renderResult(r){
   // ── HIÁNYOSSÁGOK → "AMIT BELE KELL TENNI" ───────────────────
   var mH='';
   if(r.issues&&r.issues.length){
-    // Gyűjtjük a fix_text-eket mint beilleszthető szövegjavaslatokat
     var fixable=r.issues.filter(function(i){return i.fix_text&&i.fix_text.length>10;});
     if(fixable.length){
-      mH='<div style="font-size:11px;color:#9AA3B0;margin-bottom:10px">Ezeket a klauzulákat javasoljuk hozzáadni vagy módosítani a szerződésben:</div>';
-      var _mId=0;
-      mH+=fixable.map(function(iss){
-        _mId++;
-        var mid='_m'+_mId;
+      mH='<div style="font-size:11px;color:#9AA3B0;margin-bottom:10px">Ezeket a klauzulákat javasoljuk hozzáadni vagy módosítani:</div>';
+      fixable.forEach(function(iss,idx){
+        var mid='mcard'+idx;
         var sevC=iss.severity==='kritikus'?'#C0392B':'#C67C1A';
-        return '<div style="padding:10px 12px;border-left:3px solid '+sevC+';background:white;border-radius:0 4px 4px 0;margin-bottom:8px;border:1px solid #E8E3DA;border-left:3px solid '+sevC+';cursor:pointer" onclick="var x=document.getElementById(\''+mid+'\');x.style.display=x.style.display===\'block\'?\'none\':\'block\'">'+
+        mH+='<div style="padding:10px 12px;border-left:3px solid '+sevC+';background:white;border-radius:0 4px 4px 0;margin-bottom:8px;border:1px solid #E8E3DA;cursor:pointer" onclick="(function(){var x=document.getElementById(\''+mid+'\');x.style.display=x.style.display===\'block\'?\'none\':\'block\'})()">'+
           '<div style="font-size:11px;font-weight:600;color:'+sevC+';margin-bottom:2px">'+iss.title+' <span style="font-size:10px;color:#9AA3B0">▼</span></div>'+
           '<div style="font-size:11px;color:#6B7587;line-height:1.5">'+iss.fix_text.substring(0,80)+'...</div>'+
           '<div id="'+mid+'" style="display:none;margin-top:8px;padding-top:8px;border-top:1px solid #E8E3DA">'+
           '<div style="font-size:12px;color:#2C3444;line-height:1.6;font-style:italic;margin-bottom:6px">"'+iss.fix_text+'"</div>'+
-          (iss.description?'<div style="font-size:11px;color:#6B7587;line-height:1.5">'+iss.description+'</div>':'')+
+          (iss.description?'<div style="font-size:11px;color:#6B7587;line-height:1.5;margin-top:4px">'+iss.description+'</div>':'')+
           '</div>'+
           '</div>';
-      }).join('');
+      });
     } else {
       mH='<div style="color:#9AA3B0;font-size:13px">Lásd a részletes elemzésben fent.</div>';
     }
   }
-  document.getElementById('missing-container').innerHTML=mH||'<div style="color:#9AA3B0;font-size:13px">Nem azonosítottunk hiányosságot.</div>';
-
   // ── POZITÍVUMOK ───────────────────────────────────────────────
   var posH='';
   (r.positives||[]).forEach(function(p){
@@ -179,18 +174,23 @@ function renderResult(r){
   document.getElementById('pos-container').innerHTML=posH||'<div style="color:#9AA3B0;font-size:13px">–</div>';
 
   // ── ÖSSZEFOGLALÁS – kétoszlopos ───────────────────────────────
+  // Fel1 hátrányos: ahol favors=fel2 (tehát a másik fél javára szól)
   var fel1Negativ=r.issues?r.issues.filter(function(i){return i.favors==='fel2';}):[]; 
+  // Fel2 hátrányos: ahol favors=fel1
   var fel2Negativ=r.issues?r.issues.filter(function(i){return i.favors==='fel1';}):[]; 
-  var _sId=0;
-  function _sumCard(issues, nameStr){
-    if(!issues.length) return '<div style="font-size:11px;color:#9AA3B0">Nem azonosítottunk hátrányos pontot.</div>';
-    return issues.map(function(i){
-      _sId++;
-      var sid='_s'+_sId;
-      var sc=i.severity==='kritikus'?'#C0392B':'#C67C1A';
-      return '<div style="padding:4px 0 4px 8px;border-left:2px solid '+sc+';margin-bottom:6px;cursor:pointer" onclick="var x=document.getElementById(\''+sid+'\');x.style.display=x.style.display===\'block\'?\'none\':\'block\'">'+
-        '<div style="font-size:11px;color:'+sc+';font-weight:600">'+i.title+' <span style="color:#9AA3B0;font-weight:400">▼</span></div>'+
-        '<div id="'+sid+'" style="display:none;margin-top:4px;font-size:11px;color:#6B7587;line-height:1.5">'+(i.description||'').substring(0,150)+'...<br>'+(i.fix_text?'<span style="color:#1A7A4A">✓ '+i.fix_text.substring(0,100)+'...</span>':'')+
+  // Mindkét félre hátrányos
+  var mindketto=r.issues?r.issues.filter(function(i){return i.favors==='mindketto'||i.favors==='mindkét fél';}):[]; 
+  
+  function makeSumCards(issues, prefix){
+    if(!issues.length) return '<div style="font-size:11px;color:#1A7A4A">✓ Nem azonosítottunk hátrányos pontot</div>';
+    return issues.map(function(iss,idx){
+      var cid=prefix+'_'+idx;
+      var sc=iss.severity==='kritikus'?'#C0392B':'#C67C1A';
+      return '<div style="padding:5px 0 5px 8px;border-left:2px solid '+sc+';margin-bottom:5px;cursor:pointer" onclick="(function(){var x=document.getElementById(\''+cid+'\');x.style.display=x.style.display===\'block\'?\'none\':\'block\'})()">'+
+        '<div style="font-size:11px;color:'+sc+';font-weight:600">'+iss.title+' <span style="color:#9AA3B0;font-size:10px;font-weight:400">▼</span></div>'+
+        '<div id="'+cid+'" style="display:none;margin-top:4px">'+
+        '<div style="font-size:11px;color:#6B7587;line-height:1.5;margin-bottom:4px">'+(iss.description||'').substring(0,150)+'...</div>'+
+        (iss.fix_text?'<div style="font-size:11px;color:#1A7A4A;font-style:italic">✓ '+iss.fix_text.substring(0,120)+'...</div>':'')+
         '</div></div>';
     }).join('');
   }
@@ -199,13 +199,15 @@ function renderResult(r){
     '<div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem">'+
     '<div style="background:#EEF4FC;border:1px solid #A8C4E8;border-radius:5px;padding:1rem">'+
     '<div style="font-size:11px;font-weight:700;color:#185FA5;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:8px">'+fel1Name+' helyzete</div>'+
-    '<div style="font-size:13px;color:#2C3444;margin-bottom:8px"><span style="font-weight:600">Védettség:</span> '+fel1+'/100 ('+perFel1+'%)</div>'+
-    (fel2Negativ.length?'<div style="font-size:11px;font-weight:600;color:#C0392B;margin-bottom:6px">Hátrányos pontok ('+fel2Negativ.length+') – kattints a részletekért:</div>'+_sumCard(fel2Negativ,fel1Name):'<div style="font-size:11px;color:#1A7A4A">✓ Nem azonosítottunk hátrányos pontot</div>')+
+    '<div style="font-size:13px;color:#2C3444;margin-bottom:10px"><span style="font-weight:600">Védettség:</span> '+fel1+'/100 ('+perFel1+'%)</div>'+
+    (fel2Negativ.length?'<div style="font-size:11px;font-weight:700;color:#C0392B;margin-bottom:6px">⚠ Hátrányos pontok ('+fel2Negativ.length+'):</div>'+makeSumCards(fel2Negativ,'f1n'):'<div style="font-size:11px;color:#1A7A4A">✓ Nincsenek hátrányos pontok</div>')+
+    (mindketto.length?'<div style="font-size:11px;font-weight:700;color:#C67C1A;margin-top:8px;margin-bottom:6px">⚡ Mindkét felet érintő ('+mindketto.length+'):</div>'+makeSumCards(mindketto,'f1m'):'')+
     '</div>'+
     '<div style="background:#FDF5E6;border:1px solid #F0D9A8;border-radius:5px;padding:1rem">'+
     '<div style="font-size:11px;font-weight:700;color:#C67C1A;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:8px">'+fel2Name+' helyzete</div>'+
-    '<div style="font-size:13px;color:#2C3444;margin-bottom:8px"><span style="font-weight:600">Védettség:</span> '+fel2+'/100 ('+perFel2+'%)</div>'+
-    (fel1Negativ.length?'<div style="font-size:11px;font-weight:600;color:#C0392B;margin-bottom:6px">Hátrányos pontok ('+fel1Negativ.length+') – kattints a részletekért:</div>'+_sumCard(fel1Negativ,fel2Name):'<div style="font-size:11px;color:#1A7A4A">✓ Nem azonosítottunk hátrányos pontot</div>')+
+    '<div style="font-size:13px;color:#2C3444;margin-bottom:10px"><span style="font-weight:600">Védettség:</span> '+fel2+'/100 ('+perFel2+'%)</div>'+
+    (fel1Negativ.length?'<div style="font-size:11px;font-weight:700;color:#C0392B;margin-bottom:6px">⚠ Hátrányos pontok ('+fel1Negativ.length+'):</div>'+makeSumCards(fel1Negativ,'f2n'):'<div style="font-size:11px;color:#1A7A4A">✓ Nincsenek hátrányos pontok</div>')+
+    (mindketto.length?'<div style="font-size:11px;font-weight:700;color:#C67C1A;margin-top:8px;margin-bottom:6px">⚡ Mindkét felet érintő ('+mindketto.length+'):</div>'+makeSumCards(mindketto,'f2m'):'')+
     '</div>'+
     '</div>'+
     '<div style="background:#FDF8EE;border:1px solid #F0D9A8;border-radius:5px;padding:1.25rem">'+
