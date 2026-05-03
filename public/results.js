@@ -8,6 +8,7 @@ function renderResult(r){
   var merlegC=merleg==='fel1_eros'?'#185FA5':merleg==='fel2_eros'?'#C67C1A':'#1A7A4A';
   var merlegT=merleg==='fel1_eros'?'⚖ '+fel1Name+' erősebb pozícióban':merleg==='fel2_eros'?'⚖ '+fel2Name+' erősebb pozícióban':'⚖ Kiegyensúlyozott szerződés';
 
+  // ── FELSŐ PANEL ──────────────────────────────────────────────
   document.getElementById('score-container').innerHTML=
     '<div style="background:white;border:1px solid #E8E3DA;border-radius:6px;padding:2rem;margin-bottom:1.5rem">'+
     '<div style="text-align:center;margin-bottom:1.5rem">'+
@@ -55,6 +56,7 @@ function renderResult(r){
     (r._cost?'<div style="margin-top:8px;padding:6px 12px;background:#F0F7FF;border:1px solid #A8C4E8;border-radius:4px;font-size:11px;color:#185FA5;text-align:center">💰 API költség: ~'+r._cost.cost_huf+' Ft ($'+r._cost.cost_usd+') · '+r._cost.input_tokens+' input + '+r._cost.output_tokens+' output token</div>':'')+
     '</div>';
 
+  // ── KONKRÉT JAVÍTÁSI JAVASLATOK ──────────────────────────────
   var fixesHtml='';
   if(r.issues&&r.issues.length){
     fixesHtml=r.issues.map(function(issue){
@@ -64,11 +66,8 @@ function renderResult(r){
       var sevL=sev==='kritikus'?'KRITIKUS':sev==='figyelmeztetés'?'FIGYELMEZTETÉS':'INFO';
       var favC=issue.favors==='fel1'?'#185FA5':issue.favors==='fel2'?'#C67C1A':'#1A7A4A';
       var favL=issue.favors==='fel1'?'▶ '+fel1Name:issue.favors==='fel2'?'▶ '+fel2Name:'⚖ Mindkét fél';
-
-      // Hatás mezők – támogatja mindkét elnevezést (impactA/impactB és fel1_impact/fel2_impact)
-      var hatas1 = issue.impactA || issue.fel1_impact || '';
-      var hatas2 = issue.impactB || issue.fel2_impact || '';
-
+      var hatas1=issue.impactA||issue.fel1_impact||'';
+      var hatas2=issue.impactB||issue.fel2_impact||'';
       return '<div class="deep-issue '+cls+'" onclick="this.classList.toggle(\'open\')" style="cursor:pointer;margin-bottom:10px">'+
         '<div style="display:flex;align-items:flex-start;gap:8px;flex-wrap:wrap;margin-bottom:4px">'+
         '<div style="flex:1;min-width:180px">'+
@@ -85,11 +84,11 @@ function renderResult(r){
         '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">'+
         '<div style="background:#EEF4FC;border-radius:4px;padding:10px;border:1px solid #A8C4E8">'+
         '<div style="font-size:10px;font-weight:700;color:#185FA5;margin-bottom:5px;text-transform:uppercase">'+fel1Name+' hatása</div>'+
-        '<div style="font-size:12px;color:#2C3444;line-height:1.55">'+(hatas1||'Nem meghatározható')+'</div>'+
+        '<div style="font-size:12px;color:#2C3444;line-height:1.55">'+(hatas1||'–')+'</div>'+
         '</div>'+
         '<div style="background:#FDF5E6;border-radius:4px;padding:10px;border:1px solid #F0D9A8">'+
         '<div style="font-size:10px;font-weight:700;color:#C67C1A;margin-bottom:5px;text-transform:uppercase">'+fel2Name+' hatása</div>'+
-        '<div style="font-size:12px;color:#2C3444;line-height:1.55">'+(hatas2||'Nem meghatározható')+'</div>'+
+        '<div style="font-size:12px;color:#2C3444;line-height:1.55">'+(hatas2||'–')+'</div>'+
         '</div>'+
         '</div>'+
         (issue.fix_text?'<div style="background:#EDF7F2;border:1px solid #A8DFC0;border-radius:4px;padding:12px">'+
@@ -100,48 +99,126 @@ function renderResult(r){
         '</div>';
     }).join('');
   }
-
   document.getElementById('fixes-container').innerHTML=fixesHtml||'<div style="color:#9AA3B0;font-size:13px">Nem azonosítottunk javítandó pontot.</div>';
   document.getElementById('regen-chips').innerHTML='';
-  var rH='';
+
+  // ── TÁRGYALÁSI SEGÉDLET (bal oldal – risks-container) ────────
+  var tH='';
   if(r.issues&&r.issues.length){
-    var crit=r.issues.filter(function(i){return i.severity==='kritikus';});
-    rH=(crit.length?'<div style="font-size:11px;font-weight:700;color:#C0392B;text-transform:uppercase;margin-bottom:6px">Kritikus ('+crit.length+')</div>':'')+
-      r.issues.slice(0,10).map(function(iss){
-        var c=iss.severity==='kritikus'?'high':iss.severity==='figyelmeztetés'?'med':'low';
-        var h1=iss.impactA||iss.fel1_impact||'';
-        var h2=iss.impactB||iss.fel2_impact||'';
-        return '<div class="risk-item '+c+'" style="cursor:pointer;flex-direction:column" onclick="var b=this.querySelector(\'.rx\');b.style.display=b.style.display===\'none\'?\'block\':\'none\'">'+
-          '<div style="display:flex;gap:12px;align-items:flex-start;width:100%">'+
-          '<div class="risk-bar"></div>'+
-          '<div style="flex:1"><div class="risk-title">'+iss.title+'</div>'+
-          (iss.location?'<div style="font-size:11px;color:#9AA3B0">📍 '+iss.location+'</div>':'')+
-          '<div class="risk-desc">'+(iss.description||'').substring(0,120)+'...</div></div>'+
-          '<span style="font-size:10px;color:#9AA3B0">▼</span></div>'+
-          '<div class="rx" style="display:none;margin-top:10px;padding-top:10px;border-top:1px solid rgba(0,0,0,0.1);width:100%">'+
-          '<div style="font-size:13px;color:#2C3444;line-height:1.6;margin-bottom:8px">'+(iss.description||'')+'</div>'+
-          (h1||h2?'<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">'+
-          '<div style="background:#EEF4FC;border-radius:4px;padding:8px;border:1px solid #A8C4E8"><div style="font-size:10px;font-weight:700;color:#185FA5;margin-bottom:4px">'+fel1Name+' hatása</div><div style="font-size:12px;color:#2C3444">'+(h1||'–')+'</div></div>'+
-          '<div style="background:#FDF5E6;border-radius:4px;padding:8px;border:1px solid #F0D9A8"><div style="font-size:10px;font-weight:700;color:#C67C1A;margin-bottom:4px">'+fel2Name+' hatása</div><div style="font-size:12px;color:#2C3444">'+(h2||'–')+'</div></div></div>':'')+
-          (iss.fix_text?'<div style="background:#EDF7F2;border:1px solid #A8DFC0;border-radius:4px;padding:10px"><div style="font-size:10px;font-weight:700;color:#1A7A4A;margin-bottom:4px">✓ Javasolt javítás</div><div style="font-size:12px;color:#0A0F1A;line-height:1.6">'+iss.fix_text+'</div></div>':'')+
-          '</div></div>';
-      }).join('');
+    var kritikus=r.issues.filter(function(i){return i.severity==='kritikus';});
+    var figyelmeztet=r.issues.filter(function(i){return i.severity==='figyelmeztetés';});
+
+    // Mit kérjen az ügyfél / ügyvéd a tárgyaláson
+    tH+='<div style="margin-bottom:1rem">'+
+      '<div style="font-size:11px;font-weight:700;color:#C0392B;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px">🔴 Ezeket mindenképpen újra kell tárgyalni</div>'+
+      kritikus.slice(0,4).map(function(iss){
+        return '<div style="padding:8px 12px;background:#FDF0EE;border:1px solid #F0C4BE;border-radius:4px;margin-bottom:6px">'+
+          '<div style="font-size:12px;font-weight:600;color:#C0392B;margin-bottom:3px">'+iss.title+'</div>'+
+          '<div style="font-size:11px;color:#6B7587;line-height:1.5">'+(iss.fix_text||'Lásd a részletes elemzést').substring(0,100)+'...</div>'+
+          '</div>';
+      }).join('')+
+    '</div>';
+
+    if(figyelmeztet.length){
+      tH+='<div style="margin-bottom:1rem">'+
+        '<div style="font-size:11px;font-weight:700;color:#C67C1A;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px">🟡 Ezeket érdemes módosítani</div>'+
+        figyelmeztet.slice(0,3).map(function(iss){
+          return '<div style="padding:8px 12px;background:#FDF5E6;border:1px solid #F0D9A8;border-radius:4px;margin-bottom:6px">'+
+            '<div style="font-size:12px;font-weight:600;color:#C67C1A;margin-bottom:3px">'+iss.title+'</div>'+
+            '<div style="font-size:11px;color:#6B7587;line-height:1.5">'+(iss.description||'').substring(0,100)+'...</div>'+
+            '</div>';
+        }).join('')+
+      '</div>';
+    }
+
+    // Mit fogadjon el, mit ne
+    tH+='<div style="background:#EDF7F2;border:1px solid #A8DFC0;border-radius:5px;padding:1rem;margin-bottom:1rem">'+
+      '<div style="font-size:11px;font-weight:700;color:#1A7A4A;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px">✅ Amit el lehet fogadni</div>'+
+      (r.positives||[]).slice(0,3).map(function(p){
+        return '<div style="font-size:12px;color:#2C3444;padding:4px 0;display:flex;gap:6px;line-height:1.5">'+
+          '<span style="color:#1A7A4A;flex-shrink:0">✓</span>'+(typeof p==='object'?p.title:p)+
+          '</div>';
+      }).join('')+
+    '</div>';
+
+    // Aláírás előtti ellenőrzőlista
+    tH+='<div style="background:#F0F7FF;border:1px solid #A8C4E8;border-radius:5px;padding:1rem">'+
+      '<div style="font-size:11px;font-weight:700;color:#185FA5;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px">📋 Aláírás előtt ellenőrizze</div>'+
+      (r.top_actions||[]).map(function(a,i){
+        return '<div style="font-size:12px;color:#2C3444;padding:4px 0;display:flex;gap:8px;align-items:flex-start;line-height:1.5">'+
+          '<span style="background:#185FA5;color:white;border-radius:50%;width:16px;height:16px;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;flex-shrink:0;margin-top:1px">'+(i+1)+'</span>'+a+
+          '</div>';
+      }).join('')+
+    '</div>';
   }
-  document.getElementById('risks-container').innerHTML=rH||'<div style="color:#9AA3B0;font-size:13px">Nem azonosítottunk kockázatot.</div>';
-  document.getElementById('missing-container').innerHTML='<div style="color:#9AA3B0;font-size:13px">Lásd a részletes elemzésben fent.</div>';
+  document.getElementById('risks-container').innerHTML=tH||'<div style="color:#9AA3B0;font-size:13px">Nem azonosítottunk tárgyalási pontot.</div>';
+
+  // ── HIÁNYOSSÁGOK → "AMIT BELE KELL TENNI" ───────────────────
+  var mH='';
+  if(r.issues&&r.issues.length){
+    // Gyűjtjük a fix_text-eket mint beilleszthető szövegjavaslatokat
+    var fixable=r.issues.filter(function(i){return i.fix_text&&i.fix_text.length>10;});
+    if(fixable.length){
+      mH='<div style="font-size:11px;color:#9AA3B0;margin-bottom:10px">Ezeket a klauzulákat javasoljuk hozzáadni vagy módosítani a szerződésben:</div>';
+      mH+=fixable.slice(0,5).map(function(iss){
+        var sevC=iss.severity==='kritikus'?'#C0392B':'#C67C1A';
+        return '<div style="padding:10px 12px;border-left:3px solid '+sevC+';background:white;border-radius:0 4px 4px 0;margin-bottom:8px;border:1px solid #E8E3DA;border-left:3px solid '+sevC+'">'+
+          '<div style="font-size:11px;font-weight:600;color:'+sevC+';margin-bottom:4px">'+iss.title+'</div>'+
+          '<div style="font-size:12px;color:#2C3444;line-height:1.6;font-style:italic">"'+iss.fix_text.substring(0,150)+(iss.fix_text.length>150?'...':'')+'"</div>'+
+          '</div>';
+      }).join('');
+    } else {
+      mH='<div style="color:#9AA3B0;font-size:13px">Lásd a részletes elemzésben fent.</div>';
+    }
+  }
+  document.getElementById('missing-container').innerHTML=mH||'<div style="color:#9AA3B0;font-size:13px">Nem azonosítottunk hiányosságot.</div>';
+
+  // ── POZITÍVUMOK ───────────────────────────────────────────────
   var posH='';
   (r.positives||[]).forEach(function(p){
     if(typeof p==='object'&&p.title){
-      posH+='<div class="tag-pos" style="cursor:pointer" onclick="this.querySelector(\'.pd\').style.display=this.querySelector(\'.pd\').style.display===\'none\'?\'block\':\'none\'"><strong>'+p.title+'</strong><div class="pd" style="display:none;font-size:12px;margin-top:4px">'+p.description+'</div></div>';
+      posH+='<div class="tag-pos"><strong>'+p.title+'</strong></div>';
     }else{
       posH+='<div class="tag-pos">'+p+'</div>';
     }
   });
   document.getElementById('pos-container').innerHTML=posH||'<div style="color:#9AA3B0;font-size:13px">–</div>';
+
+  // ── ÖSSZEFOGLALÁS – kétoszlopos ───────────────────────────────
+  var fel1Negativ=r.issues?r.issues.filter(function(i){return i.favors==='fel2';}):[]; // fel2 kedvez = fel1 hátrány
+  var fel2Negativ=r.issues?r.issues.filter(function(i){return i.favors==='fel1';}):[]; // fel1 kedvez = fel2 hátrány
+
   document.getElementById('summary-container').innerHTML=
-    '<div class="summary-box">'+
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem">'+
+    // Bal: fel1 szempontja
+    '<div style="background:#EEF4FC;border:1px solid #A8C4E8;border-radius:5px;padding:1rem">'+
+    '<div style="font-size:11px;font-weight:700;color:#185FA5;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:10px">'+fel1Name+' helyzete</div>'+
+    '<div style="font-size:12px;color:#2C3444;line-height:1.7;margin-bottom:8px">'+
+    '<span style="font-weight:600">Védettség:</span> '+fel1+'/100 pont ('+perFel1+'%)'+
+    '</div>'+
+    (fel2Negativ.length?
+    '<div style="font-size:11px;font-weight:600;color:#C0392B;margin-bottom:4px">Hátrányos pontok ('+fel2Negativ.length+'):</div>'+
+    fel2Negativ.slice(0,3).map(function(i){return '<div style="font-size:11px;color:#6B7587;padding:2px 0;padding-left:8px;border-left:2px solid #F0C4BE">'+i.title+'</div>';}).join('')
+    :'')+
+    '</div>'+
+    // Jobb: fel2 szempontja
+    '<div style="background:#FDF5E6;border:1px solid #F0D9A8;border-radius:5px;padding:1rem">'+
+    '<div style="font-size:11px;font-weight:700;color:#C67C1A;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:10px">'+fel2Name+' helyzete</div>'+
+    '<div style="font-size:12px;color:#2C3444;line-height:1.7;margin-bottom:8px">'+
+    '<span style="font-weight:600">Védettség:</span> '+fel2+'/100 pont ('+perFel2+'%)'+
+    '</div>'+
+    (fel1Negativ.length?
+    '<div style="font-size:11px;font-weight:600;color:#C0392B;margin-bottom:4px">Hátrányos pontok ('+fel1Negativ.length+'):</div>'+
+    fel1Negativ.slice(0,3).map(function(i){return '<div style="font-size:11px;color:#6B7587;padding:2px 0;padding-left:8px;border-left:2px solid #F0C4BE">'+i.title+'</div>';}).join('')
+    :'')+
+    '</div>'+
+    '</div>'+
+    // Összefoglaló szöveg
+    '<div style="background:#FDF8EE;border:1px solid #F0D9A8;border-radius:5px;padding:1.25rem">'+
     (r._pages?'<div style="font-size:11px;color:#9AA3B0;margin-bottom:8px">~'+r._pages+' oldal · '+r._sections+' részben elemezve</div>':'')+
-    r.summary+'</div>';
+    '<div style="font-size:14px;color:#0A0F1A;line-height:1.8;font-weight:300">'+r.summary+'</div>'+
+    '</div>';
+
   document.getElementById('analyze-results').classList.add('show');
   setTimeout(function(){document.getElementById('analyze-results').scrollIntoView({behavior:'smooth'});},100);
 }
