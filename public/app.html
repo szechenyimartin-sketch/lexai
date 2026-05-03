@@ -1323,8 +1323,6 @@ function parseDeepResult(raw){
 
 
 
-function renderResult(r){
-
 async function doRegen(){
   if(!_last)return;
   var chips=[].slice.call(document.querySelectorAll('#regen-chips .chip.on')).map(function(c){return c.textContent;});
