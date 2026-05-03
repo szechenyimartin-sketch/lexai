@@ -190,8 +190,8 @@ function renderResult(r){
       return '<div style="padding:5px 0 5px 8px;border-left:2px solid '+sc+';margin-bottom:5px;cursor:pointer" onclick="(function(){var x=document.getElementById(\''+cid+'\');x.style.display=x.style.display===\'block\'?\'none\':\'block\'})()">'+
         '<div style="font-size:11px;color:'+sc+';font-weight:600">'+iss.title+' <span style="color:#9AA3B0;font-size:10px;font-weight:400">▼</span></div>'+
         '<div id="'+cid+'" style="display:none;margin-top:4px">'+
-        '<div style="font-size:11px;color:#6B7587;line-height:1.5;margin-bottom:4px">'+(iss.description||'')+'...</div>'+
-        (iss.fix_text?'<div style="font-size:11px;color:#1A7A4A;font-style:italic">✓ '+iss.fix_text+'...</div>':'')+
+        '<div style="font-size:11px;color:#6B7587;line-height:1.5;margin-bottom:4px">'+(iss.description||'')+'</div>'+
+        (iss.fix_text?'<div style="font-size:11px;color:#1A7A4A;font-style:italic;margin-top:4px">✓ '+iss.fix_text+'</div>':'')+
         '</div></div>';
     }).join('');
   }
