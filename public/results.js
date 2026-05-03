@@ -162,6 +162,7 @@ function renderResult(r){
       mH='<div style="color:#9AA3B0;font-size:13px">Lásd a részletes elemzésben fent.</div>';
     }
   }
+  document.getElementById('missing-container').innerHTML=mH||'<div style="color:#9AA3B0;font-size:13px">Nem azonosítottunk hiányosságot.</div>';
   // ── POZITÍVUMOK ───────────────────────────────────────────────
   var posH='';
   (r.positives||[]).forEach(function(p){
