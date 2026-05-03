@@ -51,6 +51,8 @@ function renderResult(r){
     '<div style="font-size:10px;font-weight:700;color:#B8912A;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:8px">Legsürgősebb teendők</div>'+
     r.top_actions.map(function(a,i){return '<div style="font-size:13px;color:#0A0F1A;padding:4px 0;display:flex;gap:8px;line-height:1.55"><span style="color:#B8912A;font-weight:700;flex-shrink:0">'+(i+1)+'.</span>'+a+'</div>';}).join('')+
     '</div>':'') +
+    (r._mock?'<div style="margin-top:1rem;padding:8px 12px;background:#FFF8E8;border:1px solid #F0D9A8;border-radius:4px;font-size:11px;color:#B8912A;text-align:center">⚠️ MOCK MÓD – Ez teszt adat, nem valódi elemzés. API költség: 0 Ft</div>':'')+
+    (r._cost?'<div style="margin-top:8px;padding:6px 12px;background:#F0F7FF;border:1px solid #A8C4E8;border-radius:4px;font-size:11px;color:#185FA5;text-align:center">💰 API költség: ~'+r._cost.cost_huf+' Ft ($'+r._cost.cost_usd+') · '+r._cost.input_tokens+' input + '+r._cost.output_tokens+' output token</div>':'')+
     '</div>';
 
   var fixesHtml='';
@@ -62,6 +64,11 @@ function renderResult(r){
       var sevL=sev==='kritikus'?'KRITIKUS':sev==='figyelmeztetés'?'FIGYELMEZTETÉS':'INFO';
       var favC=issue.favors==='fel1'?'#185FA5':issue.favors==='fel2'?'#C67C1A':'#1A7A4A';
       var favL=issue.favors==='fel1'?'▶ '+fel1Name:issue.favors==='fel2'?'▶ '+fel2Name:'⚖ Mindkét fél';
+
+      // Hatás mezők – támogatja mindkét elnevezést (impactA/impactB és fel1_impact/fel2_impact)
+      var hatas1 = issue.impactA || issue.fel1_impact || '';
+      var hatas2 = issue.impactB || issue.fel2_impact || '';
+
       return '<div class="deep-issue '+cls+'" onclick="this.classList.toggle(\'open\')" style="cursor:pointer;margin-bottom:10px">'+
         '<div style="display:flex;align-items:flex-start;gap:8px;flex-wrap:wrap;margin-bottom:4px">'+
         '<div style="flex:1;min-width:180px">'+
@@ -78,11 +85,11 @@ function renderResult(r){
         '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">'+
         '<div style="background:#EEF4FC;border-radius:4px;padding:10px;border:1px solid #A8C4E8">'+
         '<div style="font-size:10px;font-weight:700;color:#185FA5;margin-bottom:5px;text-transform:uppercase">'+fel1Name+' hatása</div>'+
-        '<div style="font-size:12px;color:#2C3444;line-height:1.55">'+(issue.fel1_impact||'Nem meghatározható')+'</div>'+
+        '<div style="font-size:12px;color:#2C3444;line-height:1.55">'+(hatas1||'Nem meghatározható')+'</div>'+
         '</div>'+
         '<div style="background:#FDF5E6;border-radius:4px;padding:10px;border:1px solid #F0D9A8">'+
         '<div style="font-size:10px;font-weight:700;color:#C67C1A;margin-bottom:5px;text-transform:uppercase">'+fel2Name+' hatása</div>'+
-        '<div style="font-size:12px;color:#2C3444;line-height:1.55">'+(issue.fel2_impact||'Nem meghatározható')+'</div>'+
+        '<div style="font-size:12px;color:#2C3444;line-height:1.55">'+(hatas2||'Nem meghatározható')+'</div>'+
         '</div>'+
         '</div>'+
         (issue.fix_text?'<div style="background:#EDF7F2;border:1px solid #A8DFC0;border-radius:4px;padding:12px">'+
@@ -93,6 +100,7 @@ function renderResult(r){
         '</div>';
     }).join('');
   }
+
   document.getElementById('fixes-container').innerHTML=fixesHtml||'<div style="color:#9AA3B0;font-size:13px">Nem azonosítottunk javítandó pontot.</div>';
   document.getElementById('regen-chips').innerHTML='';
   var rH='';
@@ -101,7 +109,6 @@ function renderResult(r){
     rH=(crit.length?'<div style="font-size:11px;font-weight:700;color:#C0392B;text-transform:uppercase;margin-bottom:6px">Kritikus ('+crit.length+')</div>':'')+
       r.issues.slice(0,10).map(function(iss){
         var c=iss.severity==='kritikus'?'high':iss.severity==='figyelmeztetés'?'med':'low';
-        var favC=iss.favors==='fel1'?'#185FA5':iss.favors==='fel2'?'#C67C1A':'#1A7A4A';
         return '<div class="risk-item '+c+'"><div class="risk-bar"></div><div style="flex:1"><div class="risk-title">'+iss.title+'</div>'+(iss.location?'<div style="font-size:11px;color:#9AA3B0">📍 '+iss.location+'</div>':'')+'<div class="risk-desc">'+(iss.description||'').substring(0,120)+'...</div></div></div>';
       }).join('');
   }
