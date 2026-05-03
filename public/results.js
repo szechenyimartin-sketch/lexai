@@ -26,14 +26,14 @@ function renderResult(r){
     '</div>'+
     '<div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1.5rem">'+
     '<div style="background:#EEF4FC;border:1px solid #A8C4E8;border-radius:5px;padding:1.25rem;text-align:center">'+
-    '<div style="font-size:10px;font-weight:700;color:#185FA5;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:6px">Per esetén – '+fel1Name+'</div>'+
+    '<div style="font-size:10px;font-weight:700;color:#185FA5;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:6px">Védettségi arány – '+fel1Name+'</div>'+
     '<div style="font-size:42px;font-weight:700;color:#185FA5;font-family:Cormorant,serif;line-height:1">'+perFel1+'%</div>'+
-    '<div style="font-size:11px;color:#6B7587;margin-top:4px">becsült nyerési esély</div>'+
+    '<div style="font-size:11px;color:#6B7587;margin-top:4px">szerződéses védettség</div>'+
     '</div>'+
     '<div style="background:#FDF5E6;border:1px solid #F0D9A8;border-radius:5px;padding:1.25rem;text-align:center">'+
-    '<div style="font-size:10px;font-weight:700;color:#C67C1A;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:6px">Per esetén – '+fel2Name+'</div>'+
+    '<div style="font-size:10px;font-weight:700;color:#C67C1A;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:6px">Védettségi arány – '+fel2Name+'</div>'+
     '<div style="font-size:42px;font-weight:700;color:#C67C1A;font-family:Cormorant,serif;line-height:1">'+perFel2+'%</div>'+
-    '<div style="font-size:11px;color:#6B7587;margin-top:4px">becsült nyerési esély</div>'+
+    '<div style="font-size:11px;color:#6B7587;margin-top:4px">szerződéses védettség</div>'+
     '</div>'+
     '</div>'+
     '<div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1.5rem">'+
