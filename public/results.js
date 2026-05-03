@@ -112,9 +112,13 @@ function renderResult(r){
     tH+='<div style="margin-bottom:1rem">'+
       '<div style="font-size:11px;font-weight:700;color:#C0392B;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px">🔴 Ezeket mindenképpen újra kell tárgyalni</div>'+
       kritikus.slice(0,4).map(function(iss){
-        return '<div style="padding:8px 12px;background:#FDF0EE;border:1px solid #F0C4BE;border-radius:4px;margin-bottom:6px">'+
-          '<div style="font-size:12px;font-weight:600;color:#C0392B;margin-bottom:3px">'+iss.title+'</div>'+
-          '<div style="font-size:11px;color:#6B7587;line-height:1.5">'+(iss.fix_text||'Lásd a részletes elemzést').substring(0,100)+'...</div>'+
+        return '<div style="padding:8px 12px;background:#FDF0EE;border:1px solid #F0C4BE;border-radius:4px;margin-bottom:6px;cursor:pointer" onclick="var x=this.querySelector(\'.kx\');x.style.display=x.style.display===\'none\'?\'block\':\'none\'">'+
+          '<div style="font-size:12px;font-weight:600;color:#C0392B;margin-bottom:3px">'+iss.title+' <span style="font-size:10px;color:#9AA3B0">▼</span></div>'+
+          '<div style="font-size:11px;color:#6B7587;line-height:1.5">'+(iss.description||'').substring(0,80)+'...</div>'+
+          '<div class="kx" style="display:none;margin-top:8px;padding-top:8px;border-top:1px solid #F0C4BE">'+
+          '<div style="font-size:11px;color:#2C3444;line-height:1.6;margin-bottom:6px">'+(iss.description||'')+'</div>'+
+          (iss.fix_text?'<div style="background:#EDF7F2;border:1px solid #A8DFC0;border-radius:3px;padding:8px;font-size:11px;color:#1A7A4A;line-height:1.5">✓ '+iss.fix_text+'</div>':'')+
+          '</div>'+
           '</div>';
       }).join('')+
     '</div>';
@@ -123,9 +127,13 @@ function renderResult(r){
       tH+='<div style="margin-bottom:1rem">'+
         '<div style="font-size:11px;font-weight:700;color:#C67C1A;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px">🟡 Ezeket érdemes módosítani</div>'+
         figyelmeztet.slice(0,3).map(function(iss){
-          return '<div style="padding:8px 12px;background:#FDF5E6;border:1px solid #F0D9A8;border-radius:4px;margin-bottom:6px">'+
-            '<div style="font-size:12px;font-weight:600;color:#C67C1A;margin-bottom:3px">'+iss.title+'</div>'+
-            '<div style="font-size:11px;color:#6B7587;line-height:1.5">'+(iss.description||'').substring(0,100)+'...</div>'+
+          return '<div style="padding:8px 12px;background:#FDF5E6;border:1px solid #F0D9A8;border-radius:4px;margin-bottom:6px;cursor:pointer" onclick="var x=this.querySelector(\'.fx\');x.style.display=x.style.display===\'none\'?\'block\':\'none\'">'+
+            '<div style="font-size:12px;font-weight:600;color:#C67C1A;margin-bottom:3px">'+iss.title+' <span style="font-size:10px;color:#9AA3B0">▼</span></div>'+
+            '<div style="font-size:11px;color:#6B7587;line-height:1.5">'+(iss.description||'').substring(0,80)+'...</div>'+
+            '<div class="fx" style="display:none;margin-top:8px;padding-top:8px;border-top:1px solid #F0D9A8">'+
+            '<div style="font-size:11px;color:#2C3444;line-height:1.6;margin-bottom:6px">'+(iss.description||'')+'</div>'+
+            (iss.fix_text?'<div style="background:#EDF7F2;border:1px solid #A8DFC0;border-radius:3px;padding:8px;font-size:11px;color:#1A7A4A;line-height:1.5">✓ '+iss.fix_text+'</div>':'')+
+            '</div>'+
             '</div>';
         }).join('')+
       '</div>';
