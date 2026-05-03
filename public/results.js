@@ -104,59 +104,38 @@ function renderResult(r){
 
   // ── TÁRGYALÁSI SEGÉDLET (bal oldal – risks-container) ────────
   var tH='';
+  var _cardId=0;
+  function _mkCard(bg,border,titleC,title,desc,fix){
+    _cardId++;
+    var id='_card'+_cardId;
+    return '<div style="padding:8px 12px;background:'+bg+';border:1px solid '+border+';border-radius:4px;margin-bottom:6px;cursor:pointer" onclick="var x=document.getElementById(\''+id+'\');x.style.display=x.style.display===\'block\'?\'none\':\'block\'">'+
+      '<div style="font-size:12px;font-weight:600;color:'+titleC+';margin-bottom:3px">'+title+' <span style="font-size:10px;color:#9AA3B0">▼</span></div>'+
+      '<div style="font-size:11px;color:#6B7587;line-height:1.5">'+desc.substring(0,80)+'...</div>'+
+      '<div id="'+id+'" style="display:none;margin-top:8px;padding-top:8px;border-top:1px solid '+border+'">'+
+      '<div style="font-size:11px;color:#2C3444;line-height:1.6;margin-bottom:6px">'+desc+'</div>'+
+      (fix?'<div style="background:#EDF7F2;border:1px solid #A8DFC0;border-radius:3px;padding:8px;font-size:11px;color:#1A7A4A;line-height:1.5">✓ '+fix+'</div>':'')+
+      '</div></div>';
+  }
   if(r.issues&&r.issues.length){
     var kritikus=r.issues.filter(function(i){return i.severity==='kritikus';});
     var figyelmeztet=r.issues.filter(function(i){return i.severity==='figyelmeztetés';});
-
-    // Mit kérjen az ügyfél / ügyvéd a tárgyaláson
     tH+='<div style="margin-bottom:1rem">'+
       '<div style="font-size:11px;font-weight:700;color:#C0392B;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px">🔴 Ezeket mindenképpen újra kell tárgyalni</div>'+
-      kritikus.slice(0,4).map(function(iss){
-        return '<div style="padding:8px 12px;background:#FDF0EE;border:1px solid #F0C4BE;border-radius:4px;margin-bottom:6px;cursor:pointer" onclick="var x=this.querySelector(\'.kx\');x.style.display=x.style.display===\'none\'?\'block\':\'none\'">'+
-          '<div style="font-size:12px;font-weight:600;color:#C0392B;margin-bottom:3px">'+iss.title+' <span style="font-size:10px;color:#9AA3B0">▼</span></div>'+
-          '<div style="font-size:11px;color:#6B7587;line-height:1.5">'+(iss.description||'').substring(0,80)+'...</div>'+
-          '<div class="kx" style="display:none;margin-top:8px;padding-top:8px;border-top:1px solid #F0C4BE">'+
-          '<div style="font-size:11px;color:#2C3444;line-height:1.6;margin-bottom:6px">'+(iss.description||'')+'</div>'+
-          (iss.fix_text?'<div style="background:#EDF7F2;border:1px solid #A8DFC0;border-radius:3px;padding:8px;font-size:11px;color:#1A7A4A;line-height:1.5">✓ '+iss.fix_text+'</div>':'')+
-          '</div>'+
-          '</div>';
-      }).join('')+
+      kritikus.map(function(iss){return _mkCard('#FDF0EE','#F0C4BE','#C0392B',iss.title,iss.description||'',iss.fix_text||'');}).join('')+
     '</div>';
-
     if(figyelmeztet.length){
       tH+='<div style="margin-bottom:1rem">'+
         '<div style="font-size:11px;font-weight:700;color:#C67C1A;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px">🟡 Ezeket érdemes módosítani</div>'+
-        figyelmeztet.slice(0,3).map(function(iss){
-          return '<div style="padding:8px 12px;background:#FDF5E6;border:1px solid #F0D9A8;border-radius:4px;margin-bottom:6px;cursor:pointer" onclick="var x=this.querySelector(\'.fx\');x.style.display=x.style.display===\'none\'?\'block\':\'none\'">'+
-            '<div style="font-size:12px;font-weight:600;color:#C67C1A;margin-bottom:3px">'+iss.title+' <span style="font-size:10px;color:#9AA3B0">▼</span></div>'+
-            '<div style="font-size:11px;color:#6B7587;line-height:1.5">'+(iss.description||'').substring(0,80)+'...</div>'+
-            '<div class="fx" style="display:none;margin-top:8px;padding-top:8px;border-top:1px solid #F0D9A8">'+
-            '<div style="font-size:11px;color:#2C3444;line-height:1.6;margin-bottom:6px">'+(iss.description||'')+'</div>'+
-            (iss.fix_text?'<div style="background:#EDF7F2;border:1px solid #A8DFC0;border-radius:3px;padding:8px;font-size:11px;color:#1A7A4A;line-height:1.5">✓ '+iss.fix_text+'</div>':'')+
-            '</div>'+
-            '</div>';
-        }).join('')+
+        figyelmeztet.map(function(iss){return _mkCard('#FDF5E6','#F0D9A8','#C67C1A',iss.title,iss.description||'',iss.fix_text||'');}).join('')+
       '</div>';
     }
-
-    // Mit fogadjon el, mit ne
     tH+='<div style="background:#EDF7F2;border:1px solid #A8DFC0;border-radius:5px;padding:1rem;margin-bottom:1rem">'+
       '<div style="font-size:11px;font-weight:700;color:#1A7A4A;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px">✅ Amit el lehet fogadni</div>'+
-      (r.positives||[]).slice(0,3).map(function(p){
-        return '<div style="font-size:12px;color:#2C3444;padding:4px 0;display:flex;gap:6px;line-height:1.5">'+
-          '<span style="color:#1A7A4A;flex-shrink:0">✓</span>'+(typeof p==='object'?p.title:p)+
-          '</div>';
-      }).join('')+
+      (r.positives||[]).map(function(p){return '<div style="font-size:12px;color:#2C3444;padding:4px 0;display:flex;gap:6px;line-height:1.5"><span style="color:#1A7A4A;flex-shrink:0">✓</span>'+(typeof p==='object'?p.title:p)+'</div>';}).join('')+
     '</div>';
-
-    // Aláírás előtti ellenőrzőlista
     tH+='<div style="background:#F0F7FF;border:1px solid #A8C4E8;border-radius:5px;padding:1rem">'+
       '<div style="font-size:11px;font-weight:700;color:#185FA5;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px">📋 Aláírás előtt ellenőrizze</div>'+
-      (r.top_actions||[]).map(function(a,i){
-        return '<div style="font-size:12px;color:#2C3444;padding:4px 0;display:flex;gap:8px;align-items:flex-start;line-height:1.5">'+
-          '<span style="background:#185FA5;color:white;border-radius:50%;width:16px;height:16px;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;flex-shrink:0;margin-top:1px">'+(i+1)+'</span>'+a+
-          '</div>';
-      }).join('')+
+      (r.top_actions||[]).map(function(a,i){return '<div style="font-size:12px;color:#2C3444;padding:4px 0;display:flex;gap:8px;align-items:flex-start;line-height:1.5"><span style="background:#185FA5;color:white;border-radius:50%;width:16px;height:16px;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;flex-shrink:0;margin-top:1px">'+(i+1)+'</span>'+a+'</div>';}).join('')+
     '</div>';
   }
   document.getElementById('risks-container').innerHTML=tH||'<div style="color:#9AA3B0;font-size:13px">Nem azonosítottunk tárgyalási pontot.</div>';
@@ -206,7 +185,7 @@ function renderResult(r){
     '</div>'+
     (fel2Negativ.length?
     '<div style="font-size:11px;font-weight:600;color:#C0392B;margin-bottom:4px">Hátrányos pontok ('+fel2Negativ.length+'):</div>'+
-    fel2Negativ.slice(0,3).map(function(i){return '<div style="font-size:11px;color:#6B7587;padding:2px 0;padding-left:8px;border-left:2px solid #F0C4BE">'+i.title+'</div>';}).join('')
+    fel2Negativ.map(function(i){var sc=i.severity==='kritikus'?'#C0392B':'#C67C1A';return '<div style="font-size:11px;color:#6B7587;padding:3px 0 3px 8px;border-left:2px solid '+sc+';margin-bottom:2px"><span style="color:'+sc+';font-weight:600">'+i.title+'</span><div style="font-size:10px;margin-top:1px">'+(i.description||'').substring(0,80)+'...</div></div>';}).join('')
     :'')+
     '</div>'+
     // Jobb: fel2 szempontja
@@ -217,7 +196,7 @@ function renderResult(r){
     '</div>'+
     (fel1Negativ.length?
     '<div style="font-size:11px;font-weight:600;color:#C0392B;margin-bottom:4px">Hátrányos pontok ('+fel1Negativ.length+'):</div>'+
-    fel1Negativ.slice(0,3).map(function(i){return '<div style="font-size:11px;color:#6B7587;padding:2px 0;padding-left:8px;border-left:2px solid #F0C4BE">'+i.title+'</div>';}).join('')
+    fel1Negativ.map(function(i){var sc=i.severity==='kritikus'?'#C0392B':'#C67C1A';return '<div style="font-size:11px;color:#6B7587;padding:3px 0 3px 8px;border-left:2px solid '+sc+';margin-bottom:2px"><span style="color:'+sc+';font-weight:600">'+i.title+'</span><div style="font-size:10px;margin-top:1px">'+(i.description||'').substring(0,80)+'...</div></div>';}).join('')
     :'')+
     '</div>'+
     '</div>'+
