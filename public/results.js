@@ -109,7 +109,22 @@ function renderResult(r){
     rH=(crit.length?'<div style="font-size:11px;font-weight:700;color:#C0392B;text-transform:uppercase;margin-bottom:6px">Kritikus ('+crit.length+')</div>':'')+
       r.issues.slice(0,10).map(function(iss){
         var c=iss.severity==='kritikus'?'high':iss.severity==='figyelmeztetés'?'med':'low';
-        return '<div class="risk-item '+c+'"><div class="risk-bar"></div><div style="flex:1"><div class="risk-title">'+iss.title+'</div>'+(iss.location?'<div style="font-size:11px;color:#9AA3B0">📍 '+iss.location+'</div>':'')+'<div class="risk-desc">'+(iss.description||'').substring(0,120)+'...</div></div></div>';
+        var h1=iss.impactA||iss.fel1_impact||'';
+        var h2=iss.impactB||iss.fel2_impact||'';
+        return '<div class="risk-item '+c+'" style="cursor:pointer;flex-direction:column" onclick="var b=this.querySelector(\'.rx\');b.style.display=b.style.display===\'none\'?\'block\':\'none\'">'+
+          '<div style="display:flex;gap:12px;align-items:flex-start;width:100%">'+
+          '<div class="risk-bar"></div>'+
+          '<div style="flex:1"><div class="risk-title">'+iss.title+'</div>'+
+          (iss.location?'<div style="font-size:11px;color:#9AA3B0">📍 '+iss.location+'</div>':'')+
+          '<div class="risk-desc">'+(iss.description||'').substring(0,120)+'...</div></div>'+
+          '<span style="font-size:10px;color:#9AA3B0">▼</span></div>'+
+          '<div class="rx" style="display:none;margin-top:10px;padding-top:10px;border-top:1px solid rgba(0,0,0,0.1);width:100%">'+
+          '<div style="font-size:13px;color:#2C3444;line-height:1.6;margin-bottom:8px">'+(iss.description||'')+'</div>'+
+          (h1||h2?'<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">'+
+          '<div style="background:#EEF4FC;border-radius:4px;padding:8px;border:1px solid #A8C4E8"><div style="font-size:10px;font-weight:700;color:#185FA5;margin-bottom:4px">'+fel1Name+' hatása</div><div style="font-size:12px;color:#2C3444">'+(h1||'–')+'</div></div>'+
+          '<div style="background:#FDF5E6;border-radius:4px;padding:8px;border:1px solid #F0D9A8"><div style="font-size:10px;font-weight:700;color:#C67C1A;margin-bottom:4px">'+fel2Name+' hatása</div><div style="font-size:12px;color:#2C3444">'+(h2||'–')+'</div></div></div>':'')+
+          (iss.fix_text?'<div style="background:#EDF7F2;border:1px solid #A8DFC0;border-radius:4px;padding:10px"><div style="font-size:10px;font-weight:700;color:#1A7A4A;margin-bottom:4px">✓ Javasolt javítás</div><div style="font-size:12px;color:#0A0F1A;line-height:1.6">'+iss.fix_text+'</div></div>':'')+
+          '</div></div>';
       }).join('');
   }
   document.getElementById('risks-container').innerHTML=rH||'<div style="color:#9AA3B0;font-size:13px">Nem azonosítottunk kockázatot.</div>';
