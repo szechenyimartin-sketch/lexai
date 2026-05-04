@@ -1279,6 +1279,7 @@ async function doAnalyze(){
   try{
     var result=await callBackend('analyze',{
       text:text,
+      userParty: (document.getElementById('user-party') ? document.getElementById('user-party').value.trim() : ''),
       type:type,
       perspective:_perspective
     });
