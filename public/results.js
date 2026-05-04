@@ -2,15 +2,29 @@ function renderResult(r){
   document.getElementById('analyze-loading').classList.remove('show');
   var fel1=r.fel1_score||50,fel2=r.fel2_score||50;
   var fel1Name=r.fel1_name||'1. Fél',fel2Name=r.fel2_name||'2. Fél';
+  var userParty=document.getElementById('user-party')?document.getElementById('user-party').value.trim():'';
   var perFel1=r.per_esely_fel1||Math.round(fel1/(fel1+fel2)*100);
   var perFel2=r.per_esely_fel2||100-perFel1;
   var merleg=r.merleg||'kiegyensulyozott';
   var merlegC=merleg==='fel1_eros'?'#185FA5':merleg==='fel2_eros'?'#C67C1A':'#1A7A4A';
   var merlegT=merleg==='fel1_eros'?'⚖ '+fel1Name+' erősebb pozícióban':merleg==='fel2_eros'?'⚖ '+fel2Name+' erősebb pozícióban':'⚖ Kiegyensúlyozott szerződés';
 
+  // Ha user megadta melyik fél ő, meghatározzuk az "én" és "másik fél" fogalmát
+  var enFel, masikFel, enScore, masikScore, enPer, masikPer, enColor, masikColor;
+  if(userParty){
+    // Megpróbáljuk kitalálni melyik fél a felhasználó
+    var f1lower=fel1Name.toLowerCase(), f2lower=fel2Name.toLowerCase(), uLower=userParty.toLowerCase();
+    if(f1lower.indexOf(uLower)>=0||uLower.indexOf(f1lower)>=0){
+      enFel=fel1Name; masikFel=fel2Name; enScore=fel1; masikScore=fel2; enPer=perFel1; masikPer=perFel2; enColor='#185FA5'; masikColor='#C67C1A';
+    } else {
+      enFel=fel2Name; masikFel=fel1Name; enScore=fel2; masikScore=fel1; enPer=perFel2; masikPer=perFel1; enColor='#C67C1A'; masikColor='#185FA5';
+    }
+  }
+
   // ── FELSŐ PANEL ──────────────────────────────────────────────
   document.getElementById('score-container').innerHTML=
     '<div style="background:white;border:1px solid #E8E3DA;border-radius:6px;padding:2rem;margin-bottom:1.5rem">'+
+    (userParty?'<div style="background:#f0f4ff;border:1px solid #2c5aa0;border-radius:6px;padding:10px 16px;margin-bottom:1.2rem;font-size:13px;color:#2c5aa0"><strong>⚖️ Az elemzés '+userParty+' szemszögéből készült</strong></div>':'')+
     '<div style="text-align:center;margin-bottom:1.5rem">'+
     '<div style="font-size:11px;font-weight:700;color:'+merlegC+';letter-spacing:0.1em;text-transform:uppercase;margin-bottom:6px">'+merlegT+'</div>'+
     '<div style="font-family:Cormorant,serif;font-size:22px;font-weight:600;color:#0A0F1A;line-height:1.3">'+r.verdict+'</div>'+
@@ -52,34 +66,52 @@ function renderResult(r){
     '<div style="font-size:10px;font-weight:700;color:#B8912A;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:8px">Legsürgősebb teendők</div>'+
     r.top_actions.map(function(a,i){return '<div style="font-size:13px;color:#0A0F1A;padding:4px 0;display:flex;gap:8px;line-height:1.55"><span style="color:#B8912A;font-weight:700;flex-shrink:0">'+(i+1)+'.</span>'+a+'</div>';}).join('')+
     '</div>':'') +
-    (r._mock?'<div style="margin-top:1rem;padding:8px 12px;background:#FFF8E8;border:1px solid #F0D9A8;border-radius:4px;font-size:11px;color:#B8912A;text-align:center">⚠️ MOCK MÓD – Ez teszt adat, nem valódi elemzés. API költség: 0 Ft</div>':'')+
+    (r.ptk_references&&r.ptk_references.length?
+    '<div style="background:#f0fff4;border:1px solid #a8dfc0;border-radius:5px;padding:1rem;margin-top:1rem">'+
+    '<div style="font-size:10px;font-weight:700;color:#1A7A4A;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:8px">📜 Alkalmazott Ptk. §-ok</div>'+
+    r.ptk_references.map(function(p){return '<div style="font-size:12px;color:#2C3444;padding:3px 0"><strong>'+p.section+'</strong>'+(p.title?' – '+p.title:'')+' <span style="color:#9AA3B0;font-size:11px">('+p.book+')</span></div>';}).join('')+
+    '</div>':'') +
+    (r._mock?'<div style="margin-top:1rem;padding:8px 12px;background:#FFF8E8;border:1px solid #F0D9A8;border-radius:4px;font-size:11px;color:#B8912A;text-align:center">⚠️ MOCK MÓD – Ez teszt adat</div>':'')+
     (r._cost?'<div style="margin-top:8px;padding:6px 12px;background:#F0F7FF;border:1px solid #A8C4E8;border-radius:4px;font-size:11px;color:#185FA5;text-align:center">💰 API költség: ~'+r._cost.cost_huf+' Ft ($'+r._cost.cost_usd+') · '+r._cost.input_tokens+' input + '+r._cost.output_tokens+' output token</div>':'')+
     '</div>';
 
   // ── KONKRÉT JAVÍTÁSI JAVASLATOK ──────────────────────────────
   var fixesHtml='';
   if(r.issues&&r.issues.length){
-    fixesHtml=r.issues.map(function(issue){
+    // Ha user megadta melyik fél, csak az ő szempontjából hátrányos klauzulákat mutatjuk először
+    var sortedIssues=r.issues.slice();
+    if(userParty){
+      // Meghatározzuk melyik fél a user (fel1 vagy fel2)
+      var userIsFel1=fel1Name.toLowerCase().indexOf(userParty.toLowerCase())>=0||userParty.toLowerCase().indexOf(fel1Name.toLowerCase())>=0;
+      // A user szempontjából hátrányos = a másik félnek kedvez
+      sortedIssues.sort(function(a,b){
+        var aHatranyos=userIsFel1?(a.favors==='fel1'):(a.favors==='fel2');
+        var bHatranyos=userIsFel1?(b.favors==='fel1'):(b.favors==='fel2');
+        if(aHatranyos&&!bHatranyos) return -1;
+        if(!aHatranyos&&bHatranyos) return 1;
+        return 0;
+      });
+    }
+    fixesHtml=sortedIssues.map(function(issue){
       var sev=issue.severity||'figyelmeztetés';
-      var cls=sev==='kritikus'?'critical':sev==='figyelmeztetés'?'warning':'info';
       var sevBg=sev==='kritikus'?'#C0392B':sev==='figyelmeztetés'?'#C67C1A':'#185FA5';
       var sevL=sev==='kritikus'?'KRITIKUS':sev==='figyelmeztetés'?'FIGYELMEZTETÉS':'INFO';
       var favC=issue.favors==='fel1'?'#185FA5':issue.favors==='fel2'?'#C67C1A':'#1A7A4A';
-      var favL=issue.favors==='fel1'?'▶ '+fel1Name:issue.favors==='fel2'?'▶ '+fel2Name:'⚖ Mindkét fél';
-      var hatas1=issue.impactA||issue.fel1_impact||'';
-      var hatas2=issue.impactB||issue.fel2_impact||'';
-      return '<div class="deep-issue '+cls+'" onclick="this.classList.toggle(\'open\')" style="cursor:pointer;margin-bottom:10px">'+
+      var favL=issue.favors==='fel1'?'▶ '+fel1Name+' javára':issue.favors==='fel2'?'▶ '+fel2Name+' javára':'⚖ Mindkét fél';
+      var hatas1=issue.impactA||'';
+      var hatas2=issue.impactB||'';
+      return '<div class="deep-issue" onclick="this.classList.toggle(\'open\')" style="cursor:pointer;margin-bottom:10px">'+
         '<div style="display:flex;align-items:flex-start;gap:8px;flex-wrap:wrap;margin-bottom:4px">'+
         '<div style="flex:1;min-width:180px">'+
         '<div style="font-size:14px;font-weight:600;color:#0A0F1A;margin-bottom:3px">'+issue.title+'</div>'+
-        (issue.location?'<div style="font-size:11px;color:#9AA3B0">📍 '+issue.location+(issue.legal_ref?' · <em>'+issue.legal_ref+'</em>':'')+'</div>':'')+
+        (issue.location?'<div style="font-size:11px;color:#9AA3B0">📍 '+issue.location+'</div>':'')+
+        (issue.ptk_ref?'<div style="font-size:11px;color:#1A7A4A">📜 '+issue.ptk_ref+'</div>':'')+
         '</div>'+
         '<span style="font-size:10px;font-weight:700;padding:3px 9px;border-radius:10px;background:'+sevBg+';color:white;white-space:nowrap">'+sevL+'</span>'+
         '<span style="font-size:10px;font-weight:600;padding:3px 9px;border-radius:10px;color:'+favC+';white-space:nowrap;border:1px solid '+favC+'">'+favL+'</span>'+
         '<span style="font-size:10px;color:#9AA3B0">▼ részletek</span>'+
         '</div>'+
         '<div class="deep-issue-body">'+
-        (issue.original_text?'<div style="font-size:12px;color:#C0392B;text-decoration:line-through;font-style:italic;background:#FDF0EE;padding:8px 10px;border-radius:3px;margin-bottom:10px;line-height:1.5;border:1px solid #F0C4BE">📄 Eredeti szöveg: '+issue.original_text+'</div>':'')+
         '<div style="font-size:13px;color:#6B7587;line-height:1.7;margin-bottom:12px;font-weight:300">'+issue.description+'</div>'+
         '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">'+
         '<div style="background:#EEF4FC;border-radius:4px;padding:10px;border:1px solid #A8C4E8">'+
@@ -102,7 +134,7 @@ function renderResult(r){
   document.getElementById('fixes-container').innerHTML=fixesHtml||'<div style="color:#9AA3B0;font-size:13px">Nem azonosítottunk javítandó pontot.</div>';
   document.getElementById('regen-chips').innerHTML='';
 
-  // ── TÁRGYALÁSI SEGÉDLET (bal oldal – risks-container) ────────
+  // ── TÁRGYALÁSI SEGÉDLET ──────────────────────────────────────
   var tH='';
   var _cardId=0;
   function _mkCard(bg,border,titleC,title,desc,fix){
@@ -140,7 +172,7 @@ function renderResult(r){
   }
   document.getElementById('risks-container').innerHTML=tH||'<div style="color:#9AA3B0;font-size:13px">Nem azonosítottunk tárgyalási pontot.</div>';
 
-  // ── HIÁNYOSSÁGOK → "AMIT BELE KELL TENNI" ───────────────────
+  // ── HIÁNYOSSÁGOK ─────────────────────────────────────────────
   var mH='';
   if(r.issues&&r.issues.length){
     var fixable=r.issues.filter(function(i){return i.fix_text&&i.fix_text.length>10;});
@@ -158,37 +190,32 @@ function renderResult(r){
           '</div>'+
           '</div>';
       });
-    } else {
-      mH='<div style="color:#9AA3B0;font-size:13px">Lásd a részletes elemzésben fent.</div>';
     }
   }
   document.getElementById('missing-container').innerHTML=mH||'<div style="color:#9AA3B0;font-size:13px">Nem azonosítottunk hiányosságot.</div>';
+
   // ── POZITÍVUMOK ───────────────────────────────────────────────
   var posH='';
   (r.positives||[]).forEach(function(p){
-    if(typeof p==='object'&&p.title){
-      posH+='<div class="tag-pos"><strong>'+p.title+'</strong></div>';
-    }else{
-      posH+='<div class="tag-pos">'+p+'</div>';
-    }
+    posH+='<div class="tag-pos">'+(typeof p==='object'?'<strong>'+p.title+'</strong>':p)+'</div>';
   });
   document.getElementById('pos-container').innerHTML=posH||'<div style="color:#9AA3B0;font-size:13px">–</div>';
 
-  // ── ÖSSZEFOGLALÁS – kétoszlopos ───────────────────────────────
-  // Fel1 hátrányos: ahol favors=fel2 (tehát a másik fél javára szól)
-  var fel1Negativ=r.issues?r.issues.filter(function(i){return i.favors==='fel2';}):[]; 
-  // Fel2 hátrányos: ahol favors=fel1
-  var fel2Negativ=r.issues?r.issues.filter(function(i){return i.favors==='fel1';}):[]; 
-  // Mindkét félre hátrányos
-  var mindketto=r.issues?r.issues.filter(function(i){return i.favors==='mindketto'||i.favors==='mindkét fél';}):[]; 
-  
-  function makeSumCards(issues, prefix){
+  // ── ÖSSZEFOGLALÁS ─────────────────────────────────────────────
+  // favors=fel2 → fel1-nek HÁTRÁNYOS (a másik félnek kedvez)
+  // favors=fel1 → fel2-nek HÁTRÁNYOS
+  var fel1Negativ=r.issues?r.issues.filter(function(i){return i.favors==='fel2';}):[];
+  var fel2Negativ=r.issues?r.issues.filter(function(i){return i.favors==='fel1';}):[];
+  var mindketto=r.issues?r.issues.filter(function(i){return i.favors==='mindketto'||i.favors==='mindkét fél';}):[];
+
+  function makeSumCards(issues,prefix){
     if(!issues.length) return '<div style="font-size:11px;color:#1A7A4A">✓ Nem azonosítottunk hátrányos pontot</div>';
     return issues.map(function(iss,idx){
       var cid=prefix+'_'+idx;
       var sc=iss.severity==='kritikus'?'#C0392B':'#C67C1A';
       return '<div style="padding:5px 0 5px 8px;border-left:2px solid '+sc+';margin-bottom:5px;cursor:pointer" onclick="(function(){var x=document.getElementById(\''+cid+'\');x.style.display=x.style.display===\'block\'?\'none\':\'block\'})()">'+
         '<div style="font-size:11px;color:'+sc+';font-weight:600">'+iss.title+' <span style="color:#9AA3B0;font-size:10px;font-weight:400">▼</span></div>'+
+        (iss.ptk_ref?'<div style="font-size:10px;color:#1A7A4A">📜 '+iss.ptk_ref+'</div>':'')+
         '<div id="'+cid+'" style="display:none;margin-top:4px">'+
         '<div style="font-size:11px;color:#6B7587;line-height:1.5;margin-bottom:4px">'+(iss.description||'')+'</div>'+
         (iss.fix_text?'<div style="font-size:11px;color:#1A7A4A;font-style:italic;margin-top:4px">✓ '+iss.fix_text+'</div>':'')+
@@ -201,13 +228,13 @@ function renderResult(r){
     '<div style="background:#EEF4FC;border:1px solid #A8C4E8;border-radius:5px;padding:1rem">'+
     '<div style="font-size:11px;font-weight:700;color:#185FA5;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:8px">'+fel1Name+' helyzete</div>'+
     '<div style="font-size:13px;color:#2C3444;margin-bottom:10px"><span style="font-weight:600">Védettség:</span> '+fel1+'/100 ('+perFel1+'%)</div>'+
-    (fel2Negativ.length?'<div style="font-size:11px;font-weight:700;color:#C0392B;margin-bottom:6px">⚠ Hátrányos pontok ('+fel2Negativ.length+'):</div>'+makeSumCards(fel2Negativ,'f1n'):'<div style="font-size:11px;color:#1A7A4A">✓ Nincsenek hátrányos pontok</div>')+
+    (fel1Negativ.length?'<div style="font-size:11px;font-weight:700;color:#C0392B;margin-bottom:6px">⚠ Hátrányos pontok ('+fel1Negativ.length+'):</div>'+makeSumCards(fel1Negativ,'f1n'):'<div style="font-size:11px;color:#1A7A4A">✓ Nincsenek hátrányos pontok</div>')+
     (mindketto.length?'<div style="font-size:11px;font-weight:700;color:#C67C1A;margin-top:8px;margin-bottom:6px">⚡ Mindkét felet érintő ('+mindketto.length+'):</div>'+makeSumCards(mindketto,'f1m'):'')+
     '</div>'+
     '<div style="background:#FDF5E6;border:1px solid #F0D9A8;border-radius:5px;padding:1rem">'+
     '<div style="font-size:11px;font-weight:700;color:#C67C1A;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:8px">'+fel2Name+' helyzete</div>'+
     '<div style="font-size:13px;color:#2C3444;margin-bottom:10px"><span style="font-weight:600">Védettség:</span> '+fel2+'/100 ('+perFel2+'%)</div>'+
-    (fel1Negativ.length?'<div style="font-size:11px;font-weight:700;color:#C0392B;margin-bottom:6px">⚠ Hátrányos pontok ('+fel1Negativ.length+'):</div>'+makeSumCards(fel1Negativ,'f2n'):'<div style="font-size:11px;color:#1A7A4A">✓ Nincsenek hátrányos pontok</div>')+
+    (fel2Negativ.length?'<div style="font-size:11px;font-weight:700;color:#C0392B;margin-bottom:6px">⚠ Hátrányos pontok ('+fel2Negativ.length+'):</div>'+makeSumCards(fel2Negativ,'f2n'):'<div style="font-size:11px;color:#1A7A4A">✓ Nincsenek hátrányos pontok</div>')+
     (mindketto.length?'<div style="font-size:11px;font-weight:700;color:#C67C1A;margin-top:8px;margin-bottom:6px">⚡ Mindkét felet érintő ('+mindketto.length+'):</div>'+makeSumCards(mindketto,'f2m'):'')+
     '</div>'+
     '</div>'+
